@@ -46,6 +46,7 @@ import plotly.graph_objs as go
 
 app = Flask(__name__)
 #define app routes
+# through this, Javascript understands which functions to use
 @app.route("/")
 def index():
     return render_template("index.html")
