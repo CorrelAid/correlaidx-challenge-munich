@@ -1,0 +1,41 @@
+#textInput {
+    border: none;
+    border-bottom: 3px solid aqua;
+}
+.userText {
+-webkit-border-radius: 70px;
+-moz-border-radius: 70px;
+-o-border-radius: 70px;
+border-radius: 70px;
+    color: white;
+    font-family: monospace;
+    font-size: 17px;
+    text-align: right;
+    line-height: 30px;
+}
+.userText span {
+    background-color: #3863a2;
+    padding: 10px;
+    border-radius: 2px;
+}
+.botText {
+    color: white;
+    font-family: monospace;
+    font-size: 17px;
+    text-align: left;
+    line-height: 30px;
+}
+.botText span {
+-webkit-border-radius: 70px;
+-moz-border-radius: 70px;
+-o-border-radius: 70px;
+border-radius: 70px;
+    background-color: #8cd756;
+    padding: 10px;
+    border-radius: 2px;
+}
+
+.chart {
+    padding: 10px;
+    border-radius: 2px;
+}

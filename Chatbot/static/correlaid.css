@@ -1,0 +1,85 @@
+* {
+	position: relative;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+
+body {
+    	height: 100%;
+background-image: -webkit-linear-gradient(to right bottom, #96c342, #3863a2);
+background-image: -moz-linear-gradient(to right bottom, #96c342, #3863a2);
+background-image: -ms-linear-gradient(to right bottom, #96c342, #3863a2);
+background-image: -o-linear-gradient(to right bottom, #96c342, #3863a2);
+background-image: linear-gradient(to right bottom, #96c342, #3863a2);
+background-repeat: no-repeat;
+background-attachment: fixed;
+	color: #fff;
+}
+
+
+.center{
+margin-top: 1em;
+ text-align:center;
+ display:block;
+}
+
+.picture{
+  width: 100%;
+  height: 100px;
+-webkit-background-position: center top;
+-moz-background-position: center top;
+-o-background-position: center top;
+background-position: center top;
+margin-top: 50px;
+  background-size: 600px;
+background: url('./images/chatbot.png') no-repeat center top;
+}
+
+.container_two > header {
+	margin: 0 auto;
+	padding: 2em;
+	text-align: center;
+	background: rgba(0,0,0,0.01);
+}
+
+.container_two > header h1 {
+	font-size: 3.625em;
+	line-height: 1.3;
+	margin: 0;
+	font-weight: 300;
+}
+
+.container_two > header span {
+	display: block;
+	font-size: 80%;
+	opacity: 0.7;
+	padding: 0 0 0.6em 0.1em;
+}
+
+.container_two > section {
+	padding: 2em;
+	font-size: 1.4em;
+	max-width: 50em;
+	margin: 0 auto;
+}
+
+.container_two > section p {
+	padding: 0.8em 0;
+	text-align: center;
+	opacity: 0.5;
+	font-weight: 300;
+	line-height: 1.4;
+}
+
+
+@media screen and (max-width: 25em) {
+
+	.codrops-icon span {
+		display: none;
+	}
+
+}

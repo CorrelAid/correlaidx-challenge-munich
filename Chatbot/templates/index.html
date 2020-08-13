@@ -1,0 +1,158 @@
+<html lang="de">
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" type="text/css" href="/static/correlaid.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+
+</head>
+		<div class="container_two">  
+            
+<header>
+    <h1> <span> <p> CHARLIE</p> </span></h1>
+                                 <div class="picture"></div>    
+
+</header>
+            
+      
+ <div class="container">
+
+    <div class="row">
+
+        <div class="col-sm-6 offset-sm-3">
+            <div id="chatbox" class="border border-success">
+                <p class="botText"><span>Griaß di! Ich bin Charlie, ein Chatbot zu Bayern. Was ist deine Lieblingsstadt in Bayern?</span></p>
+            </div>
+            <div id="userInput">
+                <input id="textInput" class="form-control" type="text" name="msg" placeholder="Gib deine Antwort ein">
+            </div>
+        </div>
+    </div>
+     
+<div id="chartbox" class="center"></div>    
+
+    
+<script>
+    
+    function getResponse() {
+        let userText = $("#textInput").val();
+        let userHtml = '<p class="userText"><span>' + userText + '</span></p>';
+        $("#textInput").val("");
+        $("#chatbox").append(userHtml);
+        document.getElementById('userInput').scrollIntoView({block: 'start', behavior: 'smooth'});
+        $.get("/get", { msg: userText }).done(function(data) {
+        var botHtml = '<p class="botText"><span>' + data + '</span></p>';
+        $("#chatbox").append(botHtml);
+        document.getElementById('userInput').scrollIntoView({block: 'start', behavior: 'smooth'});            
+})         
+}
+    
+    
+       function getChart() {
+        chart = '<img alt="Chart" src="/static/images/plot.png">'
+        $("#chartbox").append(chart);
+}
+    
+    
+    function getSecondResponse() {
+        let userText_two = $("#textInput").val();
+        let userHtml = '<p class="userText"><span>' + userText_two + '</span></p>';
+        $("#textInput").val("");
+        $("#chatbox").append(userHtml);
+        document.getElementById('userInput').scrollIntoView({block: 'start', behavior: 'smooth'});
+        $.get("/get2", { msg_second: userText_two }).done(function(data) {
+        var botHtml = '<p class="botText"><span>' + data + '</span></p>';
+        $("#chatbox").append(botHtml);
+        document.getElementById('userInput').scrollIntoView({block: 'start', behavior: 'smooth'});
+})         
+}
+    
+       function getThirdResponse() {
+        let userText_three = $("#textInput").val();
+        let userHtml = '<p class="userText"><span>' + userText_three + '</span></p>';
+        $("#textInput").val("");
+        $("#chatbox").append(userHtml);
+        document.getElementById('userInput').scrollIntoView({block: 'start', behavior: 'smooth'});
+        $.get("/get3", { msg_third: userText_three }).done(function(data) {
+        var botHtml = '<p class="botText"><span>' + data + '</span></p>';
+        $("#chatbox").append(botHtml);
+        document.getElementById('userInput').scrollIntoView({block: 'start', behavior: 'smooth'});
+})         
+}
+    
+    
+    
+    
+var enterPressed = 0;
+window.onkeypress = function (e) {
+ var keyCode = (e.keyCode || e.which);
+ if (keyCode === 13) {
+  if (enterPressed === 0) {
+   enterPressed++;
+   $("#textInput").innerHTML = getResponse()
+  } else if (enterPressed === 1) {
+   e.preventDefault(); 
+   enterPressed++;
+   $("#textInput").innerHTML = getSecondResponse()
+  }
+    else if (enterPressed === 2) {
+   e.preventDefault(); 
+   $("#textInput").innerHTML = getThirdResponse()
+    getChart()
+
+  }
+ return;
+ }
+};
+
+    
+/* Für evtl Verbesserungen, da momentan nur Reaktion auf Enter, unabhängig von Input
+    $("#textInput").keypress(function(e) {
+    //if enter key is pressed
+        if(e.which == 13) {
+            if (null == this.ran) {
+            getResponse();
+    this.ran = true;
+  }
+    $("#textInput").keypress(function(e) {
+        if(e.which == 13) {
+            getSecondResponse();
+        }
+    });
+        }
+    });
+    $("#buttonInput").click(function() {
+       if (null == this.ran) {
+            getResponse();
+    this.ran = true;
+  }
+    });
+    
+*/ 
+   
+    
+  
+    
+    
+    
+    </script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</div>
+    
+            
+            
+
+
+            
+            
+            
+        </div>
+</body>
+</html>
