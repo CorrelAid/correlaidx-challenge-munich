@@ -25,7 +25,7 @@
 
         <div class="col-sm-6 offset-sm-3">
             <div id="chatbox" class="border border-success">
-                <p class="botText"><span>Griaß di! Ich bin Charlie, ein Chatbot zu Bayern. Was ist deine Lieblingsstadt in Bayern?</span></p>
+                <p class="botText"><span>Griaß di! Ich bin Charlie, ein Chatbot zu Bayern. Was ist deine Lieblingsstadt in Bayern?</span></p> <!-- This text whith which the conversation starts is simply given in HTML as it never changes -->
             </div>
             <div id="userInput">
                 <input id="textInput" class="form-control" type="text" name="msg" placeholder="Gib deine Antwort ein">
@@ -38,13 +38,13 @@
     
 <script>
     
-    function getResponse() {
-        let userText = $("#textInput").val();
-        let userHtml = '<p class="userText"><span>' + userText + '</span></p>';
-        $("#textInput").val("");
-        $("#chatbox").append(userHtml);
+    function getResponse() { 
+        let userText = $("#textInput").val(); //$ is the short version for GetElementbyId #this takes the value (input) of the above <input> element 
+        let userHtml = '<p class="userText"><span>' + userText + '</span></p>'; 
+        $("#textInput").val(""); //the input field is empty again
+        $("#chatbox").append(userHtml); //the input is now part of the chat
         document.getElementById('userInput').scrollIntoView({block: 'start', behavior: 'smooth'});
-        $.get("/get", { msg: userText }).done(function(data) {
+        $.get("/get", { msg: userText }).done(function(data) { //this call the Python function get_bot_response
         var botHtml = '<p class="botText"><span>' + data + '</span></p>';
         $("#chatbox").append(botHtml);
         document.getElementById('userInput').scrollIntoView({block: 'start', behavior: 'smooth'});            
@@ -58,7 +58,7 @@
 }
     
     
-    function getSecondResponse() {
+    function getSecondResponse() { //same structure getResponse
         let userText_two = $("#textInput").val();
         let userHtml = '<p class="userText"><span>' + userText_two + '</span></p>';
         $("#textInput").val("");
@@ -85,9 +85,8 @@
 }
     
     
- /* This system which reacts to is still improvable. 
- It reacts to how often you have pressed enter
- */
+    
+//this systems needs to be changed; it counts how many times you pressed enter w
 var enterPressed = 0;
 window.onkeypress = function (e) {
  var keyCode = (e.keyCode || e.which);
