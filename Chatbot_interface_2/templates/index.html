@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chatbot</title>
+    <link
+      rel="icon"
+      type="image/vnd.microsoft.icon"
+      href="/static/images/favicon.ico"
+    />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="/static/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+  </head>
+
+  <body>
+    <div id="container">
+      <div id="plot-head">
+        <div id="plot-head-img">
+          <img src="/static/images/header.png" />
+        </div>
+      </div>
+
+      <div id="chat-head">
+        <div id="chat-head-img">
+          <img src="/static/images/icon1.png" />
+        </div>
+        <div id="bot-name">
+          <h4>Charlie</h4>
+          <h6>by CorrelAidX Munich</h6>
+        </div>
+        <div id="head-icon">
+          <i class="fa fa-info-circle"></i>
+        </div>
+      </div>
+
+      <div id="chat-box">
+        <div class="msg-inbox">
+          <div class="chats">
+            <div class="received-chats">
+              <div class="received-chats-img">
+                <img src="/static/images/icon1.png" />
+              </div>
+              <div class="received-msg">
+                <div class="received-msg-inbox">
+                  <p>
+                    Griaß di! Ich bin Charlie, ein Chatbot zu Bayern. Was ist
+                    deine Lieblingsstadt in Bayern?
+                  </p>
+                  <span class="time" name="time_"> </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="plot-box">
+        <div id="plotter">
+          <img
+            src="/static/images/dummy_plot.png"
+            style="border-radius: 0%; margin: 10% 10%; width: 80%; height: 80%;"
+          />
+        </div>
+      </div>
+
+      <div id="chat-bottom">
+        <div id="bottom-box">
+          <div class="bottom-icons">
+            <!--<i class="fa fa-plus-circle"></i>
+            <i class="fa fa-trash"></i>-->
+          </div>
+          <div id="input-group">
+            <input
+              id="textInput"
+              type="text"
+              class="form-control"
+              placeholder="write a message..."
+            />
+            <i
+              class="fa fa-paper-plane"
+              onclick="if ($('#textInput').val() != '') {respond()}"
+              style="
+                width: 10%;
+                margin-top: -18px;
+                color: #3863a2;
+                float: right !important;
+                cursor: pointer;
+              "
+            ></i>
+          </div>
+        </div>
+      </div>
+      <div id="plot-bottom"></div>
+    </div>
+
+    <script>
+      function getDateStamp() {
+        let date;
+        date = new Date();
+        let strArray = [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dec',
+        ];
+        let d = date.getDate();
+        let m = strArray[date.getMonth()];
+        let m_ = date.getMinutes();
+        let h = date.getHours();
+        let stri;
+        stri =
+          '' +
+          (h <= 9 ? '0' + h : h) +
+          ':' +
+          (m_ <= 9 ? '0' + m_ : m_) +
+          ' | ' +
+          m +
+          ' ' +
+          (d <= 9 ? '0' + d : d);
+        return stri;
+      }
+      document.getElementsByName('time_')[0].innerHTML = getDateStamp();
+    </script>
+
+    <script>
+      function updateScroll() {
+        var element = document.getElementById('chat-box');
+        element.scrollTo(0, element.scrollHeight);
+      }
+
+      function getResponse() {
+        let userText = $('#textInput').val();
+        let userHtml =
+          '<div class="outgoing-chats"><div class="outgoing-chats-msg"><p>' +
+          userText +
+          '</p><span class="time">' +
+          getDateStamp() +
+          '</span></div><div class="outgoing-chats-img"><img src="/static/images/icon2.png" /></div></div></div>';
+
+        $('#textInput').val('');
+        $('.chats').append(userHtml);
+        updateScroll();
+        $.get('/get', { msg: userText }).done(function (data) {
+          var botHtml =
+            '<div class="received-chats"><div class="received-chats-img"><img src="/static/images/icon1.png" /></div><div class="received-msg"><div class="received-msg-inbox"><p>' +
+            data +
+            '</p><span class="time" name="time_">' +
+            getDateStamp() +
+            '</span></div></div></div>';
+
+          $('.chats').append(botHtml);
+          updateScroll();
+        });
+      }
+
+      /*function getChart() {
+        chart = '<span><img src="/static/images/plot1.png" /></span>';
+        $('#plot-box').val('');
+        $('#plot-box').append(chart);
+      }*/
+
+      function getSecondResponse() {
+        let userText_two = $('#textInput').val();
+        let userHtml =
+          '<div class="outgoing-chats"><div class="outgoing-chats-msg"><p>' +
+          userText_two +
+          '</p><span class="time">' +
+          getDateStamp() +
+          '</span></div><div class="outgoing-chats-img"><img src="/static/images/icon2.png" /></div></div></div>';
+
+        $('#textInput').val('');
+        $('.chats').append(userHtml);
+        updateScroll();
+        $.get('/get2', { msg_second: userText_two }).done(function (data) {
+          var botHtml =
+            '<div class="received-chats"><div class="received-chats-img"><img src="/static/images/icon1.png" /></div><div class="received-msg"><div class="received-msg-inbox"><p>' +
+            data +
+            '</p><span class="time" name="time_">' +
+            getDateStamp() +
+            '</span></div></div></div>';
+
+          $('.chats').append(botHtml);
+          updateScroll();
+        });
+      }
+
+      function getThirdResponse() {
+        let userText_three = $('#textInput').val();
+        let userHtml =
+          '<div class="outgoing-chats"><div class="outgoing-chats-msg"><p>' +
+          userText_three +
+          '</p><span class="time">' +
+          getDateStamp() +
+          '</span></div><div class="outgoing-chats-img"><img src="/static/images/icon2.png" /></div></div></div>';
+
+        $('#textInput').val('');
+        $('.chats').append(userHtml);
+        updateScroll();
+        $.get('/get3', { msg_third: userText_three }).done(function (data) {
+          var botHtml =
+            '<div class="received-chats"><div class="received-chats-img"><img src="/static/images/icon1.png" /></div><div class="received-msg"><div class="received-msg-inbox"><p>' +
+            data +
+            '</p><span class="time" name="time_">' +
+            getDateStamp() +
+            '</span></div></div></div>';
+
+          $('.chats').append(botHtml);
+          updateScroll();
+        });
+        //getChart();
+      }
+
+      var enterPressed = 0;
+      /*aktuelle Antwortsteuereung; falls man diese auf den Python-Code schiebt, kann man respond() 
+      in den EventListenern einfach austauschen*/
+      function respond() {
+        if (enterPressed === 0) {
+          enterPressed++;
+          getResponse();
+        } else if (enterPressed === 1) {
+          enterPressed++;
+          getSecondResponse();
+        } else if (enterPressed === 2) {
+          getThirdResponse();
+          getChart();
+        }
+        return;
+      }
+
+      //EventListener für Enter; Der Click auf den Flieger ist direkt oben im html-Code integriert
+      document
+        .querySelector('#textInput')
+        .addEventListener('keypress', function (e) {
+          if (e.key === 'Enter') {
+            if ($('#textInput').val() != '') {
+              respond();
+            }
+          }
+        });
+    </script>
+  </body>
+</html>
