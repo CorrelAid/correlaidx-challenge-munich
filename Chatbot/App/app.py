@@ -103,18 +103,29 @@ def get_chart(): #this is calling the chart
     #f1.get_info()
     results = q.results()
     df = results.set_index('year')
-    fig = go.Figure()
-    fig.add_trace(
-        go.Scattergl(
-            x=df.index,
-            y=df[field],
-            mode="lines+markers",
-            name="AI1302",
-        )
-    )
-    fig.update_xaxes(title_text="Time")
-    fig.update_yaxes(title_text=term+" in " +city)
-    fig.show
+    
+    # #Plotpy, not working this way, maybe good for a non static plot later? 
+    # fig = go.Figure()
+    # fig.add_trace(
+    #     go.Scattergl(
+    #         x=df.index,
+    #         y=df[field],
+    #         mode="lines+markers",
+    #         name="AI1302",
+    #     )
+    # )
+    # fig.update_xaxes(title_text="Time")
+    # fig.update_yaxes(title_text=term+" in " +city)
+    # fig.show
+
+    #Using matplotlib instead of plotly:
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
+    xs = x=df.index
+    ys = y=df[field]
+    axis.plot(xs, ys, linestyle='--', marker='o', color='b')
+    axis.set_xlabel('Time')
+    axis.set_ylabel(term+" in " +city)    
     return fig
 
 
@@ -123,12 +134,13 @@ def get_chart(): #this is calling the chart
 def plot_png():
     try: 
         fig = get_chart()
-        os.remove('/static/images/plot.png') #this replaces the plot in the /static/images folder
+        # os.remove('/static/images/plot.png') #this replaces the plot in the /static/images folder
         output = io.BytesIO()
-        canvas.print_png(output)
-        response = make_response(output.getvalue())
-        response.mimetype = 'image/png'
-        return response
+        # canvas.print_png(output)
+        # response = make_response(output.getvalue())
+        # response.mimetype = 'image/png'
+        FigureCanvas(fig).print_png(output)
+        return Response(output.getvalue(), mimetype='image/png')
     except:
         error = "no file"
         return error
