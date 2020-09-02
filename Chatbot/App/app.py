@@ -9,6 +9,9 @@ matcher = Matcher(nlp.vocab) #mabye not needed in the end
 import io #really needed?
 import random #really needed?
 from flask import Response
+from flask import send_from_directory #to download files
+from flask import send_file #to download files
+
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas #for the plot
 from matplotlib.figure import Figure
 
@@ -44,6 +47,9 @@ app = Flask(__name__) #this is needed to initialise flask
 #define app routes which reappear in the Javascript part on index.html
 @app.route("/")
 def index():
+    filePath = "downloads/data.csv"
+    if os.path.exists(filePath):
+        os.remove(filePath)
     return render_template("index.html")
 
 
@@ -103,6 +109,8 @@ def get_chart(): #this is calling the chart
     #f1.get_info()
     results = q.results()
     df = results.set_index('year')
+    #Save df as csv
+    df.to_csv('downloads/data.csv', sep='\t')
     
     # #Plotpy, not working this way, maybe good for a non static plot later? 
     # fig = go.Figure()
@@ -146,7 +154,17 @@ def plot_png():
         return error
 
 
+@app.route('/download')
+def download_file():
+    try:
+        #return send_from_directory('./download/', filename='data.csv', as_attachment=True, cache_timeout=0)
+        path = "downloads/data.csv"
+        return send_file(path, as_attachment=True, cache_timeout=0)
+    except FileNotFoundError:
+        abort(404)
 
 
 if __name__ == "__main__":
     app.run() #this runs the app by Flask
+
+    
