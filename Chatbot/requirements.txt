@@ -12,3 +12,6 @@ random
 os
 plotly
 six
+seaborn
+geopandas
+descartes
