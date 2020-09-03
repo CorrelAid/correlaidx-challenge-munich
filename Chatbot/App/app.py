@@ -41,6 +41,9 @@ import dash_core_components as dcc
 
 import plotly.graph_objs as go #for plotting the data
 
+# additional charts
+import seaborn as sns
+import geopandas as gpd
 
 
 app = Flask(__name__) #this is needed to initialise flask
@@ -65,10 +68,12 @@ def get_bot_response():
     first = city_one.ents[0] #ents recognizes names of cities, important persons, countries,...
     global city
     city = first.text.capitalize() # handle lowercase input
+    global regions
     regions = get_regions().query("level == 'nuts2'") #this recognizes if the city is in Bavaria #nuts1 are states of Germany; nuts2 are substates; nuts3 are cities
     parents = regions.query('parent == "09"') #09 is the id of Bavaria; here we find out the ids of the subregions of Bavaria which have the Bavaria id "09" as a parent
     ids = parents.index
     regions = get_regions().query("level == 'nuts3'") #
+    global cities
     cities = regions.query('(parent == "091") | (parent == "092") | (parent == "093") | (parent == "095") | (parent == "096") | (parent == "097")') #to filter the cities which have one of the subregions as a parent
     name = "name.str.contains('"+city+"')"
     match = cities.query(name, engine='python')
@@ -135,6 +140,62 @@ def get_chart(): #this is calling the chart
     axis.set_xlabel('Time')
     axis.set_ylabel(term+" in " +city)    
     return fig
+
+def get_chart2(): #this is calling the chart
+    q = Query.region(myid)
+    field = table.iloc[0]
+    field = field.name
+    f1 = q.add_field(field)
+    #f1.get_info()
+    results = q.results()
+    df = results.set_index('year')
+    #Save df as csv
+    df.to_csv('downloads/data.csv', sep='\t')
+    
+    # get other data from same "Regierungsbezirk"
+    myid_parent = regions.loc[myid]["parent"]
+    regions_nuts3_sub = regions.query('(parent == "' + myid_parent + '")')
+    q = Query.region(list(regions_nuts3_sub.index))
+    q.add_field(field)
+    regions_nuts3_sub = q.results()
+    
+    fig = sns.relplot(x = "year", y = field, 
+                      hue = "name", 
+                      data = regions_nuts3_sub)
+
+    return fig.fig
+
+def get_chart_map(): #this is calling the chart
+
+    # get multiple regions
+    q = Query.region(list(cities.index))
+    field = table.iloc[0]
+    field = field.name
+    q.add_field(field)
+    results_nuts3 = q.results()
+        
+    # read in shps
+    shp_nuts2 = gpd.read_file("shp/bavaria_nuts2")
+    # shp_nuts3 = gpd.read_file("shp/bavaria_nuts3")
+    
+    # average datenguide (or extract last year)
+    # results_nuts2_lastyear = results_nuts2[results_nuts2["year"] == max(results_nuts2["year"])]
+    results_nuts3_lastyear = results_nuts3[results_nuts3["year"] == max(results_nuts3["year"])]
+    
+    # prep for merging
+    results_nuts3_lastyear = results_nuts3_lastyear.drop_duplicates()
+    results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name"].str.replace(", Landkreis", "")
+    results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name2"].str.replace(", Landeshauptstadt", "")
+    
+    # merge datenguide data
+    plot_data = shp_nuts2.merge(results_nuts3_lastyear, 
+                                left_on="NAME_2", 
+                                right_on="name2")
+
+    # plot 
+    fig = plot_data.plot(column = field, legend = True)
+
+    return fig.get_figure()
 
 
 
