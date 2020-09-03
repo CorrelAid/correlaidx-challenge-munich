@@ -64,7 +64,7 @@ def get_bot_response():
     city_one = nlp(userText) #nlp makes the text readable for spacy
     first = city_one.ents[0] #ents recognizes names of cities, important persons, countries,...
     global city
-    city = first.text
+    city = first.text.capitalize() # handle lowercase input
     regions = get_regions().query("level == 'nuts2'") #this recognizes if the city is in Bavaria #nuts1 are states of Germany; nuts2 are substates; nuts3 are cities
     parents = regions.query('parent == "09"') #09 is the id of Bavaria; here we find out the ids of the subregions of Bavaria which have the Bavaria id "09" as a parent
     ids = parents.index
