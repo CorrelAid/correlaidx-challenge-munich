@@ -66,10 +66,10 @@
       </div>
       <div id="plot-box">
         <div id="plotter">
-          <img
+          <!-- <img
             src="/static/images/dummy_plot.png"
             style="border-radius: 0%; margin: 10% 10%; width: 80%; height: 80%;"
-          />
+          /> -->
         </div>
       </div>
 
@@ -78,6 +78,7 @@
           <div class="bottom-icons">
             <!--<i class="fa fa-plus-circle"></i>
             <i class="fa fa-trash"></i>-->
+            <a href="/download"> <i  class="fa fa-download"  style="color: #fff; padding: 5px; cursor: pointer"> </i>csv Datei </a> 
           </div>
           <div id="input-group">
             <input
@@ -171,11 +172,12 @@
         });
       }
 
-      /*function getChart() {
-        chart = '<span><img src="/static/images/plot1.png" /></span>';
+      function getChart() {
+        chart = '<img alt="Chart" src="/static/images/plot.png">'
+        //chart = '<span><img src="/static/images/plot.png" /></span>';
         $('#plot-box').val('');
         $('#plot-box').append(chart);
-      }*/
+      }
 
       function getSecondResponse() {
         let userText_two = $('#textInput').val();

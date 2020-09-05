@@ -20,6 +20,8 @@ import random
 import io
 from spacy.tokens import Doc
 from flask import Flask, render_template, request
+from flask import send_file #to download files
+
 import spacy
 import numpy
 nlp = spacy.load("de_core_news_sm")  # German
@@ -44,8 +46,10 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
+    filePath = "downloads/data.csv"
+    if os.path.exists(filePath):
+        os.remove(filePath)
     return render_template("index.html")
-
 
 @app.route("/get")
 # function for the bot response
@@ -109,36 +113,59 @@ def get_chart():
     # f1.get_info()
     results = q.results()
     df = results.set_index('year')
-    fig = go.Figure()
-    fig.add_trace(
-        go.Scattergl(
-            x=df.index,
-            y=df[field],
-            mode="lines+markers",
-            name="AI1302",
-        )
-    )
-    fig.update_xaxes(title_text="Time")
-    fig.update_yaxes(title_text=term+" in " + city)
-    fig.show
+    #Save df as csv
+    df.to_csv('downloads/data.csv', sep='\t')
+    
+    # #Plotpy, not working this way, maybe good for a non static plot later? 
+    # fig = go.Figure()
+    # fig.add_trace(
+    #     go.Scattergl(
+    #         x=df.index,
+    #         y=df[field],
+    #         mode="lines+markers",
+    #         name="AI1302",
+    #     )
+    # )
+    # fig.update_xaxes(title_text="Time")
+    # fig.update_yaxes(title_text=term+" in " +city)
+    # fig.show
+
+    #Using matplotlib instead of plotly:
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
+    xs = x=df.index
+    ys = y=df[field]
+    axis.plot(xs, ys, linestyle='--', marker='o', color='b')
+    axis.set_xlabel('Time')
+    axis.set_ylabel(term+" in " +city)    
     return fig
+
 
 
 @app.route('/static/images/plot.png')
 def plot_png():
-    try:
+    try: 
         fig = get_chart()
-        os.remove('/static/images/plot.png')
+        # os.remove('/static/images/plot.png') #this replaces the plot in the /static/images folder
         output = io.BytesIO()
         # canvas.print_png(output)
-        #response = make_response(output.getvalue())
-        #response.mimetype = 'image/png'
-        # return response
-        test = "test"
-        return test
+        # response = make_response(output.getvalue())
+        # response.mimetype = 'image/png'
+        FigureCanvas(fig).print_png(output)
+        return Response(output.getvalue(), mimetype='image/png')
     except:
         error = "no file"
         return error
+
+
+@app.route('/download')
+def download_file():
+    try:
+        #return send_from_directory('./download/', filename='data.csv', as_attachment=True, cache_timeout=0)
+        path = "downloads/data.csv"
+        return send_file(path, as_attachment=True, cache_timeout=0)
+    except FileNotFoundError:
+        abort(404)
 
 
 if __name__ == "__main__":
