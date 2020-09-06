@@ -18,8 +18,18 @@ body {
 }
 img {
   max-width: 100%;
+  /* border-radius: 50%; */
+}
+.outgoing-chats-img img{
   border-radius: 50%;
 }
+.received-chats-img img{
+  border-radius: 50%;
+}
+#chat-head-img img{
+  border-radius: 50%;
+}
+
 #container {
   display: grid;
   grid-template-columns:
