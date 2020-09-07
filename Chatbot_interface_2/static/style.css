@@ -20,13 +20,13 @@ img {
   max-width: 100%;
   /* border-radius: 50%; */
 }
-.outgoing-chats-img img{
+.outgoing-chats-img img {
   border-radius: 50%;
 }
-.received-chats-img img{
+.received-chats-img img {
   border-radius: 50%;
 }
-#chat-head-img img{
+#chat-head-img img {
   border-radius: 50%;
 }
 
@@ -71,6 +71,12 @@ img {
   width: 100%;
   height: 100%;
 }
+#plotter img {
+  margin: 10% 10%;
+  width: 80%;
+  height: 80%;
+}
+
 #plot-bottom {
   grid-column: 1;
   grid-row: 3;

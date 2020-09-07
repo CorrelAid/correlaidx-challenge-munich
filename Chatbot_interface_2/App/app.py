@@ -23,9 +23,57 @@ from flask import Flask, render_template, request
 from flask import send_file #to download files
 
 import spacy
-import numpy
+#Changed!
+import numpy as np
+
 nlp = spacy.load("de_core_news_sm")  # German
+#nlp = spacy.load("de_core_news_lg")
 matcher = Matcher(nlp.vocab)
+
+
+# all regions on nut3 level in Bavaria
+bezirke = get_regions().query("parent == '09'")
+z = []
+for i in bezirke.index.values.tolist():
+    z = z + get_regions().query("parent == '"+str(i)+"'").name.values.tolist()
+
+# transform names to nlp format for comparing
+n = []
+for names in map(lambda x: x.lower(), z):
+    n.append(nlp(names))
+
+
+def recognizeYes(Text):
+    text = Text.lower()
+    if ("ja" == text or "ja " in text or "ja." in text or "ja," in text or "gerne" in text or "ok" in text):
+        return True
+    else:
+        return False
+
+
+def recognizeNo(Text):
+    text = Text.lower()
+    if ("nein" in text or "nicht" in text or "ne" in text):
+        return True
+    else:
+        return False
+
+
+def getCity(text):
+    global n
+    global z
+    sim = []
+    com_doc = nlp(text.lower())
+    for doc in n:
+        list1 = []
+        for teil in com_doc:
+            list2 = []
+            for token in doc:
+                list2.append(token.similarity(teil))
+            list1.append(max(np.array(list2)))
+        mean = np.sum(np.array(list1))/len(list1)
+        sim.append(mean)
+    return z[np.array(sim).argmax()]
 
 
 # Here comes the regionaldatenbank.de part
@@ -43,6 +91,16 @@ if not os.path.basename(os.getcwd()) == "datenguide-python":
 app = Flask(__name__)
 # define app routes
 
+last = 0
+ansDict = {1: "Warst Du schon mal in Bayern?", 2: "In München gibt es die meisten Touristen in Bayern. Vielleicht magst Du ja mal vorbeikommen?", 3: "Was ist denn Deine Lieblingsstadt in Bayern? Oder hast Du keine?", 4: "Hmm, den Bezirk scheine ich leider nicht zu kennen. Kennst Du vielleicht die Region in der erliegt oder hast Du Dich vielleicht verschrieben?", 5: "Möchtest Du stattdessen vielleicht erstmal etwas über ganz Bayern erfahren?", 6: "Ok gerne, hier ein interessanter Plot zu Bayern:", 7: "Schade, möchtest Du stattdessen einen Plot über ganz Bayern sehen?",
+           8: "Das ist eine schöne Region! Gibt es ein Thema, das dich hierzu besonders interessiert?", 9: "Interessiert Dich das Thema ...?", 10: "Links hast Du einen Plot zum Thema. Beim Download-Button kannst Du Dir die CSV-Datei herunterladen.", 11: "Hier ein paar Erklärungen zu den Daten:", 12: "Vielleicht interessiert Dich eines der folgenden Themen:", 13: "Möchtest Du gerne noch etwas über eine andere region erfahren?", 14: "Welche Region interessiert Dich denn besonders?", 15: "Danke fürs Vorbeischauen. Bis zum nächsten Mal!"}
+
+plot_con = "False"
+city = ""
+#temporary:
+myid = '09461'
+table = get_statistics().query("long_description.str.contains('"+'Geld'+"')", engine='python')
+
 
 @app.route("/")
 def index():
@@ -50,6 +108,110 @@ def index():
     if os.path.exists(filePath):
         os.remove(filePath)
     return render_template("index.html")
+
+# plot anzeigen -> im Zweifel immer abfragen + logische Variable
+@app.route("/getPlot")
+def plot():
+    global plot_con
+    return plot_con
+
+@app.route("/getGlobal")
+def bot_response():
+    global last
+    global ansDict
+    global plot_con
+    global city
+    userText = request.args.get('msg')
+    if last == 0:
+        last = 1
+        return ansDict[1]
+    elif last == 1:
+        last = 2
+        return ansDict[2]
+    elif last == 2:
+        last = 3
+        return ansDict[3]
+    elif last == 3:
+        if "keine" in userText:
+            #last = 4
+            # return ansDict[5]
+            last = 5
+            return ansDict[5]
+        else:
+            last = 8
+            city = getCity(userText)
+            return city+" ist ein schöner Ort! Gibt es ein Thema, das dich hierzu besonders interessiert?"
+            # return ansDict[8]
+    # elif last == 4:
+    #    if True:
+    #        last = 5
+    #        return ansDict[5]
+    #    else:
+    #        last = 8
+    #        return ansDict[8]
+    elif last == 5:
+        if recognizeYes(userText):
+            last = 6
+            plot_png()
+            plot_con = "True"
+            return ansDict[6]
+        else:
+            last = 13
+            return ansDict[13]
+    elif last == 6:
+        plot_con = "False"
+        last = 13
+        return ansDict[13]
+    elif last == 7:
+        if recognizeYes(userText):
+            last = 6
+            plot_png()
+            plot_con = "True"
+            return ansDict[6]
+        else:
+            last = 13
+            return ansDict[13]
+    elif last == 8:
+        last = 9
+        return ansDict[9]
+    elif last == 9:
+        if recognizeYes(userText):
+            last = 10
+            plot_png()
+            plot_con = "True"
+            return ansDict[10]
+        else:
+            last = 12
+            return ansDict[12]
+    elif last == 10:
+        plot_con = "False"
+        last = 11
+        return ansDict[11]
+    elif last == 11:
+        last = 13
+        return ansDict[13]
+    elif last == 12:
+        if recognizeNo(userText):
+            last = 7
+            return ansDict[7]
+        else:
+            last = 9
+            return ansDict[9]
+    elif last == 13:
+        if recognizeYes(userText):
+            last = 14
+            return ansDict[14]
+        else:
+            last = 15
+            return ansDict[15]
+    elif last == 14:
+        last = 8
+        city = getCity(userText)
+        # return ansDict[8]
+        return city+" ist ein schöner Ort! Gibt es ein Thema, das dich hierzu besonders interessiert?"
+    elif last == 15:
+        return None
+
 
 @app.route("/get")
 # function for the bot response

@@ -40,7 +40,9 @@
           <h6>by CorrelAidX Munich</h6>
         </div>
         <div id="head-icon">
-          <i class="fa fa-info-circle"></i>
+          <a href="https://datengui.de/">
+            <i class="fa fa-info-circle"></i>
+          </a>
         </div>
       </div>
 
@@ -54,8 +56,9 @@
               <div class="received-msg">
                 <div class="received-msg-inbox">
                   <p>
-                    Griaß di! Ich bin Charlie, ein Chatbot zu Bayern. Was ist
-                    deine Lieblingsstadt in Bayern?
+                    Griaß di! Ich bin Charlie, ein Chatbot zu Bayern. Ich kann
+                    Dir mithilfe der Regionalstatistik verschiedene Statistiken
+                    und Informationen über Bayern zeigen. Wer bist Du denn?
                   </p>
                   <span class="time" name="time_"> </span>
                 </div>
@@ -78,7 +81,14 @@
           <div class="bottom-icons">
             <!--<i class="fa fa-plus-circle"></i>
             <i class="fa fa-trash"></i>-->
-            <a href="/download"> <i  class="fa fa-download"  style="color: #fff; padding: 5px; cursor: pointer"> </i>csv Datei </a> 
+            <a href="/download" style="color: #fff">
+              <i
+                class="fa fa-download"
+                style="color: #fff; padding: 5px; cursor: pointer"
+              >
+              </i
+              >csv Datei
+            </a>
           </div>
           <div id="input-group">
             <input
@@ -89,7 +99,7 @@
             />
             <i
               class="fa fa-paper-plane"
-              onclick="if ($('#textInput').val() != '') {respond()}"
+              onclick="if ($('#textInput').val() != '') {getResponse()}"
               style="
                 width: 10%;
                 margin-top: -18px;
@@ -150,7 +160,7 @@
       function getResponse() {
         let userText = $('#textInput').val();
         let userHtml =
-          '<div class="outgoing-chats"><div class="outgoing-chats-msg"><p>' +
+          '<div class="outgoing-chats"><div class="outgoing-chats-msg"><p style="word-wrap: break-word;">' +
           userText +
           '</p><span class="time">' +
           getDateStamp() +
@@ -159,9 +169,10 @@
         $('#textInput').val('');
         $('.chats').append(userHtml);
         updateScroll();
-        $.get('/get', { msg: userText }).done(function (data) {
+
+        $.get('/getGlobal', { msg: userText }).done(function (data) {
           var botHtml =
-            '<div class="received-chats"><div class="received-chats-img"><img src="/static/images/icon1.png" /></div><div class="received-msg"><div class="received-msg-inbox"><p>' +
+            '<div class="received-chats"><div class="received-chats-img"><img src="/static/images/icon1.png" /></div><div class="received-msg"><div class="received-msg-inbox"><p style="word-wrap: break-word;">' +
             data +
             '</p><span class="time" name="time_">' +
             getDateStamp() +
@@ -170,81 +181,19 @@
           $('.chats').append(botHtml);
           updateScroll();
         });
+        //falls der Plot direkt vom py Script hinzugefügt wird, nicht nötig. Ansonsten vielleicht eine Möglichkeit zu prüfen, ob der Plot angezeigt werden soll
+        //$.get('/getPlot', {}).done(function (data) {
+        //  if (data == 'True') {
+        //    getChart();
+        //  }
+        //});
       }
 
       function getChart() {
-        chart = '<img alt="Chart" src="/static/images/plot.png" >'
+        chart = '<img alt="Chart" src="/static/images/plot.png" >';
         //chart = '<span><img src="/static/images/plot.png" /></span>';
         $('#plotter').val('');
         $('#plotter').append(chart);
-      }
-
-      function getSecondResponse() {
-        let userText_two = $('#textInput').val();
-        let userHtml =
-          '<div class="outgoing-chats"><div class="outgoing-chats-msg"><p>' +
-          userText_two +
-          '</p><span class="time">' +
-          getDateStamp() +
-          '</span></div><div class="outgoing-chats-img"><img src="/static/images/icon2.png" /></div></div></div>';
-
-        $('#textInput').val('');
-        $('.chats').append(userHtml);
-        updateScroll();
-        $.get('/get2', { msg_second: userText_two }).done(function (data) {
-          var botHtml =
-            '<div class="received-chats"><div class="received-chats-img"><img src="/static/images/icon1.png" /></div><div class="received-msg"><div class="received-msg-inbox"><p>' +
-            data +
-            '</p><span class="time" name="time_">' +
-            getDateStamp() +
-            '</span></div></div></div>';
-
-          $('.chats').append(botHtml);
-          updateScroll();
-        });
-      }
-
-      function getThirdResponse() {
-        let userText_three = $('#textInput').val();
-        let userHtml =
-          '<div class="outgoing-chats"><div class="outgoing-chats-msg"><p>' +
-          userText_three +
-          '</p><span class="time">' +
-          getDateStamp() +
-          '</span></div><div class="outgoing-chats-img"><img src="/static/images/icon2.png" /></div></div></div>';
-
-        $('#textInput').val('');
-        $('.chats').append(userHtml);
-        updateScroll();
-        $.get('/get3', { msg_third: userText_three }).done(function (data) {
-          var botHtml =
-            '<div class="received-chats"><div class="received-chats-img"><img src="/static/images/icon1.png" /></div><div class="received-msg"><div class="received-msg-inbox"><p>' +
-            data +
-            '</p><span class="time" name="time_">' +
-            getDateStamp() +
-            '</span></div></div></div>';
-
-          $('.chats').append(botHtml);
-          updateScroll();
-        });
-        //getChart();
-      }
-
-      var enterPressed = 0;
-      /*aktuelle Antwortsteuereung; falls man diese auf den Python-Code schiebt, kann man respond() 
-      in den EventListenern einfach austauschen*/
-      function respond() {
-        if (enterPressed === 0) {
-          enterPressed++;
-          getResponse();
-        } else if (enterPressed === 1) {
-          enterPressed++;
-          getSecondResponse();
-        } else if (enterPressed === 2) {
-          getThirdResponse();
-          getChart();
-        }
-        return;
       }
 
       //EventListener für Enter; Der Click auf den Flieger ist direkt oben im html-Code integriert
@@ -253,7 +202,7 @@
         .addEventListener('keypress', function (e) {
           if (e.key === 'Enter') {
             if ($('#textInput').val() != '') {
-              respond();
+              getResponse();
             }
           }
         });
