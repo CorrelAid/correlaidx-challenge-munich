@@ -1,6 +1,7 @@
 #imports
 from flask import Flask, render_template, request #we need flask to visualize Python such that JavaScript and Python understand each other
 import spacy #spacy is useful for chatbots and works with nlp
+from string import punctuation
 import numpy
 nlp = spacy.load("de_core_news_sm") #German
 from spacy.matcher import Matcher #for patterns #maybe not needed in the end
@@ -84,11 +85,27 @@ def get_bot_response():
         myid = match.index[0] #at the moment, simply the first one out of the "Landkreis" of the city and the city is chosen - needs to be changed 
         return str(city+" ist eine schöne Stadt! Gibt es ein Thema, das dich zu " +city+" besonders interessiert? Bitte gib einen Begriff wie 'Abfälle', 'Unfälle' oder 'Geld' ein")
     
+
+def get_hotwords(text):
+    """Extract topic from the user input
+    """
+    result = []
+    pos_tag = ['PROPN', 'ADJ', 'NOUN'] 
+    doc = nlp(text.lower()) 
+    for token in doc:
+        if(token.text in nlp.Defaults.stop_words or token.text in punctuation):
+            continue
+        if(token.pos_ in pos_tag):
+            result.append(token.text)
+                
+    return result 
+
+
 @app.route("/get2") #this is called by the JavaScript function getSecondResponse
 def get_bot_response_zwei():
     global userText_two
     userText_two = request.args.get('msg_second')
-    description = "long_description.str.contains('"+userText_two+"')" #this checks the long description of the table for the input topic #first check short_description to be done
+    description = "long_description.str.contains('"+get_hotwords(userText_two)[0]+"')" #this checks the long description of the table for the input topic #first check short_description to be done
     global table
     table = get_statistics().query(description, engine='python')
     global term
