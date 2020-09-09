@@ -143,8 +143,21 @@ app = Flask(__name__)
 
 last = 0
 proposal = ""
-ansDict = {1: "Warst Du schon mal in Bayern?", 2: "In München gibt es die meisten Touristen in Bayern. Vielleicht magst Du ja mal vorbeikommen?", 3: "Was ist denn Deine Lieblingsstadt in Bayern? Oder hast Du keine?", 4: "Hmm, den Bezirk scheine ich leider nicht zu kennen. Kennst Du vielleicht die Region in der erliegt oder hast Du Dich vielleicht verschrieben?", 5: "Möchtest Du stattdessen vielleicht erstmal etwas über ganz Bayern erfahren?", 6: "Ok gerne, hier ein interessanter Plot zu Bayern:", 7: "Schade, möchtest Du stattdessen einen Plot über ganz Bayern sehen?",
-           8: "Das ist eine schöne Region! Gibt es ein Thema, das dich hierzu besonders interessiert?", 9: "Interessiert Dich das Thema...?", 10: "Links hast Du einen Plot zum Thema. Beim Download-Button kannst Du Dir die CSV-Datei herunterladen.", 11: "Hier ein paar Erklärungen zu den Daten:", 12: "Vielleicht interessiert dich das Thema "+proposal+"?", 13: "Möchtest Du gerne noch etwas über eine andere Region erfahren?", 14: "Welche Region interessiert Dich denn besonders?", 15: "Danke fürs Vorbeischauen. Bis zum nächsten Mal!"}
+ansDict = {1: "Warst Du schon mal in Bayern?", 
+           2: "In München gibt es die meisten Touristen in Bayern. Vielleicht magst Du ja mal vorbeikommen?", 
+           3: "Was ist denn Deine Lieblingsstadt in Bayern? Oder hast Du keine?", 
+           4: "Hmm, den Bezirk scheine ich leider nicht zu kennen. Kennst Du vielleicht die Region in der erliegt oder hast Du Dich vielleicht verschrieben?", 
+           5: "Möchtest Du stattdessen vielleicht erstmal etwas über ganz Bayern erfahren?", 
+           6: "Ok gerne, hier ein interessanter Plot zu Bayern:", 
+           7: "Schade, möchtest Du stattdessen einen Plot über ganz Bayern sehen?",
+           8: "Das ist eine schöne Region! Gibt es ein Thema, das dich hierzu besonders interessiert?", 
+           9: "Interessiert Dich das Thema...?", 
+           10: "Links hast Du einen Plot zum Thema. Beim Download-Button kannst Du Dir die CSV-Datei herunterladen.", 
+           11: "Hier ein paar Erklärungen zu den Daten:", 
+           12: "Vielleicht interessiert dich das Thema "+proposal+"?", 
+           13: "Möchtest Du gerne noch etwas über eine andere Region erfahren?", 
+           14: "Welche Region interessiert Dich denn besonders?", 
+           15: "Danke fürs Vorbeischauen. Bis zum nächsten Mal!"}
 
 plot_con = "False"
 city = ""
@@ -240,7 +253,7 @@ def bot_response():
     userText = request.args.get('msg')
     if last == 0:
         last = 1
-        return ansDict[1]
+        return "Hallo "+userText +"! "+ansDict[1]
     elif last == 1:
         last = 2
         return ansDict[2]

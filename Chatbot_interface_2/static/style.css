@@ -72,9 +72,9 @@ img {
   height: 100%;
 }
 #plotter img {
-  margin: 10% 10%;
+  /* margin: 10% 10%;
   width: 80%;
-  height: 80%;
+  height: 80%; */ 
 }
 
 #plot-bottom {
@@ -164,6 +164,7 @@ img {
   margin: 0;
   padding: 5px 10px 5px 12px;
   width: 100%;
+  word-wrap: break-word;
 }
 .time {
   color: #777;
@@ -183,6 +184,7 @@ img {
   margin: 0;
   padding: 5px 10px 5px 12px;
   width: 100%;
+  word-wrap: break-word;
 }
 .outgoing-chats-msg {
   float: left;
