@@ -139,6 +139,8 @@ if not os.path.basename(os.getcwd()) == "datenguide-python":
 
 
 app = Flask(__name__)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0 #reduce the max-age value of 12 hours to 0, cache is not stored longer #TODO, test it
+
 # define app routes
 
 last = 0
@@ -214,27 +216,37 @@ def get_chart():
 
     # Using matplotlib instead of plotly:
     fig = Figure()
+    fig.tight_layout()
     axis = fig.add_subplot(1, 1, 1)
     xs = x = df.index
     ys = y = df[field]
     axis.plot(xs, ys, linestyle='--', marker='o', color='b')
     axis.set_xlabel('Time')
     axis.set_ylabel(term+" in " + city)
-    fig.savefig('foo.png')
+    fig.savefig('images/plot.png')
     return fig
 
 
 @app.route('/static/images/plot.png')
 def plot_png():
     try:
-        fig = get_chart()
-        # os.remove('/static/images/plot.png') #this replaces the plot in the /static/images folder
-        output = io.BytesIO()
-        # canvas.print_png(output)
-        # response = make_response(output.getvalue())
-        # response.mimetype = 'image/png'
-        FigureCanvas(fig).print_png(output)
-        return Response(output.getvalue(), mimetype='image/png')
+        fig = get_chart2()
+        
+        #### Directly use the plot as matplotlib file:
+        # # os.remove('/static/images/plot.png') #this replaces the plot in the /static/images folder
+        # output = io.BytesIO()
+        # # canvas.print_png(output)
+        # # response = make_response(output.getvalue())
+        # # response.mimetype = 'image/png'
+        # FigureCanvas(fig).print_png(output)
+        # return Response(output.getvalue(), mimetype='image/png')
+        
+        ##### Save plot as png
+        with open("images/plot.png", "rb") as image:
+            f = image.read()
+            b = bytearray(f)
+        
+        return Response(b, mimetype='image/png')
     except:
         error = "no file"
         return error
