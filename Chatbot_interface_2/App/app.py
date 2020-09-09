@@ -230,6 +230,15 @@ def get_chart():
     return fig
 
 
+@app.route("/resetLast")
+def reset():
+    global last
+    global plot_con
+    plot_con = "False"
+    last = 0
+    return "true"
+
+
 @app.route('/static/images/plot.png')
 def plot_png():
     global plotChoice
