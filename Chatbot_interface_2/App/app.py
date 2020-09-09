@@ -108,7 +108,8 @@ def get_hotwords(text):
 
 def get_topic(input):
     try:
-        description = "long_description.str.contains('"+get_hotwords(input)[0]+"')"
+        description = "long_description.str.contains('"+get_hotwords(input)[
+            0]+"')"
         table = get_statistics().query(description, engine='python')
         global term
         term = table['short_description'].iloc[0]
@@ -125,12 +126,10 @@ def get_topic(input):
         return "False"
 
 
-
 # Here comes the regionaldatenbank.de part
 # These are the steps given by Correlaid:
 # %load_ext autoreload
 # %autoreload
-
 if not os.path.basename(os.getcwd()) == "datenguide-python":
     os.chdir("..")
 
@@ -139,32 +138,36 @@ if not os.path.basename(os.getcwd()) == "datenguide-python":
 
 
 app = Flask(__name__)
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0 #reduce the max-age value of 12 hours to 0, cache is not stored longer #TODO, test it
+# reduce the max-age value of 12 hours to 0, cache is not stored longer #TODO, test it
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 # define app routes
 
 last = 0
 proposal = ""
-ansDict = {1: "Warst Du schon mal in Bayern?", 
-           2: "In München gibt es die meisten Touristen in Bayern. Vielleicht magst Du ja mal vorbeikommen?", 
-           3: "Was ist denn Deine Lieblingsstadt in Bayern? Oder hast Du keine?", 
-           4: "Hmm, den Bezirk scheine ich leider nicht zu kennen. Kennst Du vielleicht die Region in der erliegt oder hast Du Dich vielleicht verschrieben?", 
-           5: "Möchtest Du stattdessen vielleicht erstmal etwas über ganz Bayern erfahren?", 
-           6: "Ok gerne, hier ein interessanter Plot zu Bayern:", 
+ansDict = {1: "Warst Du schon mal in Bayern?",
+           2: "In München gibt es die meisten Touristen in Bayern. Vielleicht magst Du ja mal vorbeikommen?",
+           3: "Was ist denn Deine Lieblingsstadt in Bayern? Oder hast Du keine?",
+           4: "Hmm, den Bezirk scheine ich leider nicht zu kennen. Kennst Du vielleicht die Region in der erliegt oder hast Du Dich vielleicht verschrieben?",
+           5: "Möchtest Du stattdessen vielleicht erstmal etwas über ganz Bayern erfahren?",
+           6: "Ok gerne, hier ein interessanter Plot zu Bayern:",
            7: "Schade, möchtest Du stattdessen einen Plot über ganz Bayern sehen?",
-           8: "Das ist eine schöne Region! Gibt es ein Thema, das dich hierzu besonders interessiert?", 
-           9: "Interessiert Dich das Thema...?", 
-           10: "Links hast Du einen Plot zum Thema. Beim Download-Button kannst Du Dir die CSV-Datei herunterladen.", 
-           11: "Hier ein paar Erklärungen zu den Daten:", 
-           12: "Vielleicht interessiert dich das Thema "+proposal+"?", 
-           13: "Möchtest Du gerne noch etwas über eine andere Region erfahren?", 
-           14: "Welche Region interessiert Dich denn besonders?", 
-           15: "Danke fürs Vorbeischauen. Bis zum nächsten Mal!"}
+           8: "Das ist eine schöne Region! Gibt es ein Thema, das dich hierzu besonders interessiert?",
+           9: "Interessiert Dich das Thema...?",
+           10: "Links hast Du einen Plot zum Thema. Beim Download-Button kannst Du Dir die CSV-Datei herunterladen.",
+           11: "Hier ein paar Erklärungen zu den Daten:",
+           12: "Vielleicht interessiert dich das Thema "+proposal+"?",
+           13: "Möchtest Du gerne noch etwas über eine andere Region erfahren?",
+           14: "Welche Region interessiert Dich denn besonders?",
+           15: "Danke fürs Vorbeischauen. Bis zum nächsten Mal!",
+           16: "Gibt es ein Thema, das dich zu Bayern besonders interessiert? Bitte gibt einen Begriff wie 'Abfälle', 'Unfälle' oder 'Geld' ein",
+           17: "Interessiert dich zu Bayern das Thema..."}
 
 plot_con = "False"
 city = ""
 topic = ""
 info = ""
+plotChoice = "Flo"
 # temporary:
 #myid = '09461'
 #table = get_statistics().query("long_description.str.contains('"+'Geld'+"')", engine='python')
@@ -229,24 +232,28 @@ def get_chart():
 
 @app.route('/static/images/plot.png')
 def plot_png():
+    global plotChoice
     try:
-        fig = get_chart()
-        
-        #### Directly use the plot as matplotlib file:
+        #fig = get_chart()
+        if (plotChoice == "Michael"):
+            fig = get_chart_map()
+        else:
+            fig = get_chart()
+        # Directly use the plot as matplotlib file:
         # # os.remove('/static/images/plot.png') #this replaces the plot in the /static/images folder
-        # output = io.BytesIO()
+        output = io.BytesIO()
         # # canvas.print_png(output)
         # # response = make_response(output.getvalue())
         # # response.mimetype = 'image/png'
-        # FigureCanvas(fig).print_png(output)
-        # return Response(output.getvalue(), mimetype='image/png')
-        
-        ##### Save plot as png
-        with open("images/plot.png", "rb") as image:
-            f = image.read()
-            b = bytearray(f)
-        
-        return Response(b, mimetype='image/png')
+        FigureCanvas(fig).print_png(output)
+        return Response(output.getvalue(), mimetype='image/png')
+
+        # Save plot as png
+        # with open("images/plot.png", "rb") as image:
+        #    f = image.read()
+        #    b = bytearray(f)
+
+        # return Response(b, mimetype='image/png')
     except:
         error = "no file"
         return error
@@ -261,11 +268,12 @@ def bot_response():
     global term
     global topic
     global proposal
-    global info    
+    global info
+    global plotChoice
     userText = request.args.get('msg')
     if last == 0:
         last = 1
-        return "Hallo "+userText +"! "+ansDict[1]
+        return "Hallo "+userText + "! "+ansDict[1]
     elif last == 1:
         last = 2
         return ansDict[2]
@@ -273,7 +281,7 @@ def bot_response():
         last = 3
         return ansDict[3]
     elif last == 3:
-        if "keine" in userText:
+        if "keine" in userText.lower():
             #last = 4
             # return ansDict[5]
             last = 5
@@ -292,23 +300,25 @@ def bot_response():
     #        return ansDict[8]
     elif last == 5:
         if recognizeYes(userText):
-            last = 6
-            plot_con = 'True'
-            get_chart2()
-            return ansDict[6]
+            last = 16
+            #plot_con = 'True'
+            # get_chart2()
+            return ansDict[16]
         else:
             last = 13
             return ansDict[13]
     elif last == 6:
         plot_con = 'False'
-        last = 13
-        return ansDict[13]
+        #last = 13
+        # return ansDict[13]
+        last = 11
+        return "Hier ein paar Erklärungen zu den Daten:"+info
     elif last == 7:
         if recognizeYes(userText):
-            last = 6
-            plot_con = 'True'
-            plot_png()
-            return ansDict[6]
+            last = 16
+            #plot_con = 'True'
+            # plot_png()
+            return ansDict[16]
         else:
             last = 13
             return ansDict[13]
@@ -325,11 +335,12 @@ def bot_response():
         if recognizeYes(userText):
             last = 10
             plot_con = 'True'
+            plotChoice = "Flo"
             plot_png()
             return ansDict[10]
         else:
             last = 12
-            proposal ="Abfälle"
+            proposal = "Abfälle"
             return "Hmm...Vielleicht interessiert dich das Thema "+proposal+"?"
     elif last == 10:
         plot_con = 'False'
@@ -361,6 +372,29 @@ def bot_response():
         return city+" ist ein schöner Ort! Gibt es ein Thema, das dich hierzu besonders interessiert?"
     elif last == 15:
         return None
+    elif last == 16:
+        last = 17
+        topic = get_topic(userText)
+        return "Interessiert dich zu Bayern das Thema "+topic+"?"
+    elif last == 17:
+        if recognizeYes(userText):
+            last = 6
+            plot_con = 'True'
+            plotChoice = "Michael"
+            plot_png()
+            return ansDict[6]
+        else:
+            last = 18
+            proposal = "Abfälle"
+            return "Hmm...Vielleicht interessiert dich zu Bayern das Thema "+proposal+"?"
+    elif last == 18:
+        if recognizeNo(userText):
+            last = 13
+            return ansDict[13]
+        else:
+            last = 17
+            topic = get_topic(proposal)
+            return "Interessiert Dich das Thema "+topic+"?"
 
 
 @app.route('/download')
@@ -403,9 +437,17 @@ def get_chart2():  # this is calling the chart
 
 
 def get_chart_map():  # this is calling the chart
+    global topic
+    regions = get_regions().query("level == 'nuts3'")
+    cities = regions.query(
+        '(parent == "091") | (parent == "092") | (parent == "093") | (parent == "095") | (parent == "096") | (parent == "097")')
 
     # get multiple regions
     q = Query.region(list(cities.index))
+
+    description = "short_description.str.contains('"+topic+"')"
+    table = get_statistics().query(description, engine='python')
+
     field = table.iloc[0]
     field = field.name
     q.add_field(field)
@@ -417,8 +459,10 @@ def get_chart_map():  # this is calling the chart
 
     # average datenguide (or extract last year)
     # results_nuts2_lastyear = results_nuts2[results_nuts2["year"] == max(results_nuts2["year"])]
-    results_nuts3_lastyear = results_nuts3[results_nuts3["year"] == max(
-        results_nuts3["year"])]
+    # results_nuts3_lastyear = results_nuts3[results_nuts3["year"] == max(
+    #    results_nuts3["year"])]
+    max_year = max(results_nuts3["year"])
+    results_nuts3_lastyear = results_nuts3[results_nuts3["year"] == max_year]
 
     # prep for merging
     results_nuts3_lastyear = results_nuts3_lastyear.drop_duplicates()
@@ -433,9 +477,18 @@ def get_chart_map():  # this is calling the chart
                                 right_on="name2")
 
     # plot
-    fig = plot_data.plot(column=field, legend=True)
+    #fig = plot_data.plot(column=field, legend=True)
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
 
-    return fig.get_figure()
+    axis = plot_data.plot(column=field, legend=True, ax=axis)
+    #fig.suptitle(term + " in " + str(max_year))
+    fig.suptitle(topic + " in " + str(max_year))
+    axis.set_axis_off()
+
+    # return fig.get_figure()
+    fig.savefig('foo4.png')
+    return fig
 
 
 if __name__ == "__main__":
