@@ -20,7 +20,7 @@ import random
 import io
 from spacy.tokens import Doc
 from flask import Flask, render_template, request
-from flask import send_file #to download files
+from flask import send_file  # to download files
 from string import punctuation
 
 # additional charts
@@ -29,7 +29,7 @@ import geopandas as gpd
 
 
 import spacy
-#Changed!
+# Changed!
 import numpy as np
 
 nlp = spacy.load("de_core_news_sm")  # German
@@ -71,6 +71,7 @@ def recognizeNo(Text):
 def getCity(text):
     global n
     global z
+    global myid
     sim = []
     com_doc = nlp(text.lower())
     for doc in n:
@@ -82,11 +83,11 @@ def getCity(text):
             list1.append(max(np.array(list2)))
         mean = np.sum(np.array(list1))/len(list1)
         sim.append(mean)
-    try:
-        global myid
-        myid = ids[np.array(sim).argmax()]
-    except:
-        print("Error")
+    # try:
+    #    myid = ids[np.array(sim).argmax()]
+    # except:
+    #    print("Error")
+    myid = ids[np.array(sim).argmax()]
     return z[np.array(sim).argmax()]
 
 
@@ -94,18 +95,19 @@ def get_hotwords(text):
     """Extract topic from the user input
     """
     result = []
-    pos_tag = ['PROPN', 'ADJ', 'NOUN'] 
-    doc = nlp(text.lower()) 
+    pos_tag = ['PROPN', 'ADJ', 'NOUN']
+    doc = nlp(text.lower())
     for token in doc:
         if(token.text in nlp.Defaults.stop_words or token.text in punctuation):
             continue
         if(token.pos_ in pos_tag):
             result.append(token.text)
 
-    return result 
+    return result
+
 
 def get_topic(input):
-    description = "long_description.str.contains('"+get_hotwords(input)[0]+"')" 
+    description = "long_description.str.contains('"+get_hotwords(input)[0]+"')"
     table = get_statistics().query(description, engine='python')
     global term
     term = table['short_description'].iloc[0]
@@ -133,7 +135,8 @@ ansDict = {1: "Warst Du schon mal in Bayern?", 2: "In München gibt es die meist
 
 plot_con = "False"
 city = ""
-#temporary:
+topic = ""
+# temporary:
 #myid = '09461'
 #table = get_statistics().query("long_description.str.contains('"+'Geld'+"')", engine='python')
 
@@ -145,17 +148,19 @@ def index():
         os.remove(filePath)
     return render_template("index.html")
 
-# plot anzeigen -> im Zweifel immer abfragen + logische Variable
+
 @app.route("/getPlot")
 def plot():
     global plot_con
     return plot_con
 
-def get_chart(text):
-    description = "long_description.str.contains('"+get_hotwords(text)[0]+"')" 
-    table = get_statistics().query(description, engine='python')
+
+def get_chart():
+    global topic
     global myid
-    myid = '09461'
+    description = "long_description.str.contains('"+topic+"')"
+    table = get_statistics().query(description, engine='python')
+    #myid = '09461'
     q = Query.region(myid)
     field = table.iloc[0]
     field = field.name
@@ -163,10 +168,10 @@ def get_chart(text):
     # f1.get_info()
     results = q.results()
     df = results.set_index('year')
-    #Save df as csv
+    # Save df as csv
     df.to_csv('downloads/data.csv', sep='\t')
-    
-    # #Plotpy, not working this way, maybe good for a non static plot later? 
+
+    # #Plotpy, not working this way, maybe good for a non static plot later?
     # fig = go.Figure()
     # fig.add_trace(
     #     go.Scattergl(
@@ -180,21 +185,22 @@ def get_chart(text):
     # fig.update_yaxes(title_text=term+" in " +city)
     # fig.show
 
-    #Using matplotlib instead of plotly:
+    # Using matplotlib instead of plotly:
     fig = Figure()
     axis = fig.add_subplot(1, 1, 1)
-    xs = x=df.index
-    ys = y=df[field]
+    xs = x = df.index
+    ys = y = df[field]
     axis.plot(xs, ys, linestyle='--', marker='o', color='b')
     axis.set_xlabel('Time')
-    axis.set_ylabel(term+" in " +city)    
+    axis.set_ylabel(term+" in " + city)
+    fig.savefig('foo.png')
     return fig
 
 
 @app.route('/static/images/plot.png')
-def plot_png(text):
-    try: 
-        fig = get_chart(text)
+def plot_png():
+    try:
+        fig = get_chart()
         # os.remove('/static/images/plot.png') #this replaces the plot in the /static/images folder
         output = io.BytesIO()
         # canvas.print_png(output)
@@ -214,6 +220,8 @@ def bot_response():
     global plot_con
     global city
     global term
+    global topic
+    global userInput
     userText = request.args.get('msg')
     if last == 0:
         last = 1
@@ -245,43 +253,40 @@ def bot_response():
     elif last == 5:
         if recognizeYes(userText):
             last = 6
+            plot_con = 'True'
             plot_png()
-            plot_con = "True"
             return ansDict[6]
         else:
             last = 13
             return ansDict[13]
     elif last == 6:
-        plot_con = "False"
+        plot_con = 'False'
         last = 13
         return ansDict[13]
     elif last == 7:
         if recognizeYes(userText):
             last = 6
+            plot_con = 'True'
             plot_png()
-            plot_con = "True"
             return ansDict[6]
         else:
             last = 13
             return ansDict[13]
     elif last == 8:
         last = 9
-        global userInput
-        userInput = userText #saves the input
-        global topic
         topic = get_topic(userText)
-        return str("Interessiert Dich das Thema "+topic+"?")
+        return "Interessiert Dich das Thema "+topic+"?"
     elif last == 9:
         if recognizeYes(userText):
             last = 10
-            plot_png(userInput)
-            plot_con = "True"
+            plot_con = 'True'
+            plot_png()
             return ansDict[10]
         else:
             last = 12
             return ansDict[12]
     elif last == 10:
-        plot_con = "False"
+        plot_con = 'False'
         last = 11
         return ansDict[11]
     elif last == 11:
@@ -293,7 +298,9 @@ def bot_response():
             return ansDict[7]
         else:
             last = 9
-            return ansDict[9]
+            topic = get_topic(userText)
+            return "Interessiert Dich das Thema "+topic+"?"
+            # return ansDict[9]
     elif last == 13:
         if recognizeYes(userText):
             last = 14
@@ -310,28 +317,25 @@ def bot_response():
         return None
 
 
-   
-
-
 @app.route('/download')
 def download_file():
     try:
-        #return send_from_directory('./download/', filename='data.csv', as_attachment=True, cache_timeout=0)
+        # return send_from_directory('./download/', filename='data.csv', as_attachment=True, cache_timeout=0)
         path = "downloads/data.csv"
         return send_file(path, as_attachment=True, cache_timeout=0)
     except FileNotFoundError:
         abort(404)
 
 
-def get_chart2(): #this is calling the chart
+def get_chart2():  # this is calling the chart
     q = Query.region(myid)
     field = table.iloc[0]
     field = field.name
     f1 = q.add_field(field)
-    #f1.get_info()
+    # f1.get_info()
     results = q.results()
     df = results.set_index('year')
-    #Save df as csv
+    # Save df as csv
     df.to_csv('downloads/data.csv', sep='\t')
 
     # get other data from same "Regierungsbezirk"
@@ -341,13 +345,14 @@ def get_chart2(): #this is calling the chart
     q.add_field(field)
     regions_nuts3_sub = q.results()
 
-    fig = sns.relplot(x = "year", y = field, 
-                      hue = "name", 
-                      data = regions_nuts3_sub)
+    fig = sns.relplot(x="year", y=field,
+                      hue="name",
+                      data=regions_nuts3_sub)
 
     return fig.fig
 
-def get_chart_map(): #this is calling the chart
+
+def get_chart_map():  # this is calling the chart
 
     # get multiple regions
     q = Query.region(list(cities.index))
@@ -362,20 +367,23 @@ def get_chart_map(): #this is calling the chart
 
     # average datenguide (or extract last year)
     # results_nuts2_lastyear = results_nuts2[results_nuts2["year"] == max(results_nuts2["year"])]
-    results_nuts3_lastyear = results_nuts3[results_nuts3["year"] == max(results_nuts3["year"])]
+    results_nuts3_lastyear = results_nuts3[results_nuts3["year"] == max(
+        results_nuts3["year"])]
 
     # prep for merging
     results_nuts3_lastyear = results_nuts3_lastyear.drop_duplicates()
-    results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name"].str.replace(", Landkreis", "")
-    results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name2"].str.replace(", Landeshauptstadt", "")
+    results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name"].str.replace(
+        ", Landkreis", "")
+    results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name2"].str.replace(
+        ", Landeshauptstadt", "")
 
     # merge datenguide data
-    plot_data = shp_nuts2.merge(results_nuts3_lastyear, 
-                                left_on="NAME_2", 
+    plot_data = shp_nuts2.merge(results_nuts3_lastyear,
+                                left_on="NAME_2",
                                 right_on="name2")
 
-    # plot 
-    fig = plot_data.plot(column = field, legend = True)
+    # plot
+    fig = plot_data.plot(column=field, legend=True)
 
     return fig.get_figure()
 
