@@ -230,7 +230,7 @@ def get_chart():
 @app.route('/static/images/plot.png')
 def plot_png():
     try:
-        fig = get_chart2()
+        fig = get_chart()
         
         #### Directly use the plot as matplotlib file:
         # # os.remove('/static/images/plot.png') #this replaces the plot in the /static/images folder
