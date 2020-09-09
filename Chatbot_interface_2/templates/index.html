@@ -2,7 +2,13 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+      Cache-Control:
+      max-age="0,"
+      must-revalidate
+    />
     <title>Chatbot</title>
     <link
       rel="icon"
@@ -69,10 +75,7 @@
       </div>
       <div id="plot-box">
         <div id="plotter">
-          <!-- <img
-            src="/static/images/dummy_plot.png"
-            style="border-radius: 0%; margin: 10% 10%; width: 80%; height: 80%;"
-          /> -->
+          <img id="chart" src="" />
         </div>
       </div>
 
@@ -157,12 +160,16 @@
         element.scrollTo(0, element.scrollHeight);
       }
 
+      //function getChart() {
+      //  chart = '<img alt="Chart" src="/static/images/plot.png" >';
+      //chart = '<span><img src="/static/images/plot.png" /></span>';
+      //  $('#plotter').val('');
+      // $('#plotter').append(chart);
+      //}
 
       function getChart() {
-        chart = '<img alt="Chart" src="/static/images/plot.png" >';
-        //chart = '<span><img src="/static/images/plot.png" /></span>';
-        $('#plotter').val('');
-        $('#plotter').append(chart);
+        var image = document.getElementById('chart');
+        image.src = '/static/images/plot.png#' + new Date().getTime();
       }
 
       function getResponse() {
@@ -190,14 +197,13 @@
           updateScroll();
         });
         //falls der Plot direkt vom py Script hinzugefügt wird, nicht nötig. Ansonsten vielleicht eine Möglichkeit zu prüfen, ob der Plot angezeigt werden soll
-       
-       $.get('/getPlot', {}).done(function (data) {
-         if (data == 'True') {
-          getChart();
+
+        $.get('/getPlot', {}).done(function (data) {
+          if (data == 'True') {
+            getChart();
           }
         });
       }
-
 
       //EventListener für Enter; Der Click auf den Flieger ist direkt oben im html-Code integriert
       document
