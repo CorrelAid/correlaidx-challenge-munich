@@ -111,7 +111,16 @@ def get_topic(input):
     table = get_statistics().query(description, engine='python')
     global term
     term = table['short_description'].iloc[0]
+    global info
+    info = table['long_description'].iloc[0]
+    info = info.split("===Aussage===")
+    info = info[1]
+    info = info.split("Indikatorberechnung")
+    info = info[0]
+    info = info.split("=")
+    info = info[0]
     return term
+
 
 
 # Here comes the regionaldatenbank.de part
@@ -131,11 +140,12 @@ app = Flask(__name__)
 
 last = 0
 ansDict = {1: "Warst Du schon mal in Bayern?", 2: "In München gibt es die meisten Touristen in Bayern. Vielleicht magst Du ja mal vorbeikommen?", 3: "Was ist denn Deine Lieblingsstadt in Bayern? Oder hast Du keine?", 4: "Hmm, den Bezirk scheine ich leider nicht zu kennen. Kennst Du vielleicht die Region in der erliegt oder hast Du Dich vielleicht verschrieben?", 5: "Möchtest Du stattdessen vielleicht erstmal etwas über ganz Bayern erfahren?", 6: "Ok gerne, hier ein interessanter Plot zu Bayern:", 7: "Schade, möchtest Du stattdessen einen Plot über ganz Bayern sehen?",
-           8: "Das ist eine schöne Region! Gibt es ein Thema, das dich hierzu besonders interessiert?", 9: "Interessiert Dich das Thema...?", 10: "Links hast Du einen Plot zum Thema. Beim Download-Button kannst Du Dir die CSV-Datei herunterladen.", 11: "Hier ein paar Erklärungen zu den Daten:", 12: "Vielleicht interessiert Dich eines der folgenden Themen:", 13: "Möchtest Du gerne noch etwas über eine andere region erfahren?", 14: "Welche Region interessiert Dich denn besonders?", 15: "Danke fürs Vorbeischauen. Bis zum nächsten Mal!"}
+           8: "Das ist eine schöne Region! Gibt es ein Thema, das dich hierzu besonders interessiert?", 9: "Interessiert Dich das Thema...?", 10: "Links hast Du einen Plot zum Thema. Beim Download-Button kannst Du Dir die CSV-Datei herunterladen.", 11: "Hier ein paar Erklärungen zu den Daten:", 12: "Vielleicht interessiert Dich eines der folgenden Themen:", 13: "Möchtest Du gerne noch etwas über eine andere Region erfahren?", 14: "Welche Region interessiert Dich denn besonders?", 15: "Danke fürs Vorbeischauen. Bis zum nächsten Mal!"}
 
 plot_con = "False"
 city = ""
 topic = ""
+info = ""
 # temporary:
 #myid = '09461'
 #table = get_statistics().query("long_description.str.contains('"+'Geld'+"')", engine='python')
@@ -221,7 +231,7 @@ def bot_response():
     global city
     global term
     global topic
-    global userInput
+    global info    
     userText = request.args.get('msg')
     if last == 0:
         last = 1
@@ -254,7 +264,7 @@ def bot_response():
         if recognizeYes(userText):
             last = 6
             plot_con = 'True'
-            plot_png()
+            get_chart2()
             return ansDict[6]
         else:
             last = 13
@@ -288,7 +298,7 @@ def bot_response():
     elif last == 10:
         plot_con = 'False'
         last = 11
-        return ansDict[11]
+        return "Hier ein paar Erklärungen zu den Daten:"+info
     elif last == 11:
         last = 13
         return ansDict[13]
@@ -328,6 +338,10 @@ def download_file():
 
 
 def get_chart2():  # this is calling the chart
+    global topic
+    global myid
+    description = "long_description.str.contains('"+topic+"')"
+    table = get_statistics().query(description, engine='python')
     q = Query.region(myid)
     field = table.iloc[0]
     field = field.name
