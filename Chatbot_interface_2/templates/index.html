@@ -157,6 +157,14 @@
         element.scrollTo(0, element.scrollHeight);
       }
 
+
+      function getChart() {
+        chart = '<img alt="Chart" src="/static/images/plot.png" >';
+        //chart = '<span><img src="/static/images/plot.png" /></span>';
+        $('#plotter').val('');
+        $('#plotter').append(chart);
+      }
+
       function getResponse() {
         let userText = $('#textInput').val();
         let userHtml =
@@ -182,19 +190,14 @@
           updateScroll();
         });
         //falls der Plot direkt vom py Script hinzugefügt wird, nicht nötig. Ansonsten vielleicht eine Möglichkeit zu prüfen, ob der Plot angezeigt werden soll
-        //$.get('/getPlot', {}).done(function (data) {
-        //  if (data == 'True') {
-        //    getChart();
-        //  }
-        //});
+       
+       $.get('/getPlot', {}).done(function (data) {
+         if (data == 'True') {
+          getChart();
+          }
+        });
       }
 
-      function getChart() {
-        chart = '<img alt="Chart" src="/static/images/plot.png" >';
-        //chart = '<span><img src="/static/images/plot.png" /></span>';
-        $('#plotter').val('');
-        $('#plotter').append(chart);
-      }
 
       //EventListener für Enter; Der Click auf den Flieger ist direkt oben im html-Code integriert
       document
