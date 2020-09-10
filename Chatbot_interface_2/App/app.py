@@ -125,8 +125,6 @@ def get_topic(input):
         return "False"
 
 
-
-
 # Here comes the regionaldatenbank.de part
 if not os.path.basename(os.getcwd()) == "datenguide-python":
     os.chdir("..")
@@ -340,7 +338,7 @@ def bot_response():
             last = 18
             proposal = "Abfälle"
             return "Hmm...Vielleicht interessiert dich zu Bayern das Thema "+proposal+"? Falls ja, gib mir bitte etwas Zeit alles zu berechnen"
-        else:   
+        else:
             return "Interessiert dich zu Bayern das Thema "+topic+"? Falls ja, gib mir bitte etwas Zeit alles zu berechnen"
     elif last == 17:
         if recognizeYes(userText):
@@ -371,8 +369,8 @@ def bot_response():
             last = 16
             return ansDict[16]
         else:
-            last = 13
-            return ansDict[13]
+            last = 15
+            return ansDict[15]
 
 
 @app.route('/download')
@@ -408,10 +406,10 @@ def get_chart_map():  # this is calling the chart
 
     # prep for merging
     results_nuts3_lastyear = results_nuts3_lastyear.drop_duplicates()
-    #test if df is empty
+    # test if df is empty
     row = results_nuts3_lastyear.iloc[4]
     emptytest = row.iloc[4]
-    if(len(emptytest) != 0): 
+    if(len(emptytest) != 0):
         results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name"].str.replace(
             ", Landkreis", "")
         results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name2"].str.replace(
@@ -419,8 +417,8 @@ def get_chart_map():  # this is calling the chart
 
     # merge datenguide data
         plot_data = shp_nuts2.merge(results_nuts3_lastyear,
-                                left_on="CC_2",
-                                right_on="id")
+                                    left_on="CC_2",
+                                    right_on="id")
 
     # plot
         fig = Figure()
