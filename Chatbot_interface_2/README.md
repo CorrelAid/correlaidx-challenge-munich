@@ -31,7 +31,7 @@ pipwin install fiona
 pipwin install pyproj
 pipwin install six
 pipwin install rtree
-pipwin install geopandas`.
+pipwin install geopandas`. Otherwise,  download GDAL and fiona via https://www.lfd.uci.edu/~gohlke/pythonlibs/#gdal and https://www.lfd.uci.edu/~gohlke/pythonlibs/#fiona or use conda.
 
 ## Dialog flow
 
