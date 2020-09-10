@@ -32,9 +32,15 @@ import spacy
 # Changed!
 import numpy as np
 
-nlp = spacy.load("de_core_news_sm")  # German
+nlp = spacy.load("de_core_news_lg")  # German
 #nlp = spacy.load("de_core_news_lg")
 matcher = Matcher(nlp.vocab)
+
+# preparing statistics
+statistics = get_statistics().short_description.values.tolist()
+desc = []
+for names in statistics:
+    desc.append(nlp(names))
 
 
 # all regions on nut3 level in Bavaria
@@ -96,7 +102,8 @@ def get_hotwords(text):
     """
     result = []
     pos_tag = ['PROPN', 'ADJ', 'NOUN']
-    doc = nlp(text.lower())
+    #doc = nlp(text.lower())
+    doc = nlp(text)
     for token in doc:
         if(token.text in nlp.Defaults.stop_words or token.text in punctuation):
             continue
@@ -107,23 +114,46 @@ def get_hotwords(text):
 
 
 def get_topic(input):
+    global term
+    global info
     try:
-        description = "long_description.str.contains('"+get_hotwords(input)[
-            0]+"')"
-        table = get_statistics().query(description, engine='python')
-        global term
-        term = table['short_description'].iloc[0]
-        global info
-        info = table['long_description'].iloc[0]
+        sim_stat = []
+        separator = ' '
+        words = nlp(separator.join(get_hotwords(input)))
+        #words = nlp(input)
+        for doc in desc:
+            list1 = []
+            for teil in words:
+                list2 = []
+                for token in doc:
+                    list2.append(token.similarity(teil))
+                # list1.append(np.array(list2).mean())
+                list1.append(max(np.array(list2)))
+            #mean = sum(np.array(list1))
+            mean = np.array(list1).mean()
+            sim_stat.append(mean)
+        table = get_statistics().iloc[np.array(sim_stat).argmax()]
+        term = table['short_description']
+        info = table['long_description']
         info = info.split("===Aussage===")
-        info = info[1]
-        info = info.split("Indikatorberechnung")
-        info = info[0]
-        info = info.split("=")
-        info = info[0]
+        try:
+            info = info[1]
+            info = info.split("Indikatorberechnung")
+            info = info[0]
+            info = info.split("=")
+            info = info[0]
+            info = info[:500]
+        except:
+            info = info.split("Indikatorberechnung")
+            info = info[0]
+            info = info.split("=")
+            info = info[0]
+            info = info[:500]
         return term
     except:
         return "False"
+
+
 
 
 # Here comes the regionaldatenbank.de part
@@ -160,8 +190,11 @@ ansDict = {1: "Warst Du schon mal in Bayern?",
            13: "Möchtest Du gerne noch etwas über eine andere Region erfahren?",
            14: "Welche Region interessiert Dich denn besonders?",
            15: "Danke fürs Vorbeischauen. Bis zum nächsten Mal!",
-           16: "Gibt es ein Thema, das dich zu Bayern besonders interessiert? Bitte gibt einen Begriff wie 'Abfälle', 'Unfälle' oder 'Geld' ein",
-           17: "Interessiert dich zu Bayern das Thema..."}
+           16: "Gibt es ein Thema, das dich zu Bayern besonders interessiert? Bitte gib einen Begriff wie 'Abfälle', 'Unfälle' oder 'Geld' ein",
+           17: "Interessiert dich zu Bayern das Thema...",
+           18: "Hmmm...Vielleicht interessiert dich zu Bayern das Thema...",
+           19: "Ups, dazu konnte ich leider nichts plotten. Welches andere Thema interessiert dich zu Bayern?",
+           20: "Ups, dazu konnte ich leider nichts plotten. Welches andere Thema interessiert dich?"}
 
 plot_con = "False"
 city = ""
@@ -190,6 +223,7 @@ def plot():
 def get_chart():
     global topic
     global myid
+    global term
     description = "long_description.str.contains('"+topic+"')"
     table = get_statistics().query(description, engine='python')
     #myid = '09461'
@@ -282,7 +316,9 @@ def bot_response():
     userText = request.args.get('msg')
     if last == 0:
         last = 1
-        return "Hallo "+userText + "! "+ansDict[1]
+        separator = ' '
+        name = separator.join(get_hotwords(userText))
+        return "Hallo "+name + "! "+ansDict[1]
     elif last == 1:
         last = 2
         return ansDict[2]
@@ -298,7 +334,7 @@ def bot_response():
         else:
             last = 8
             city = getCity(userText)
-            return city+" ist ein schöner Ort! Gibt es ein Thema, das dich hierzu besonders interessiert?"
+            return city+" ist ein schöner Ort! Welches Thema interessiert dich hierzu besonders?"
             # return ansDict[8]
     # elif last == 4:
     #    if True:
@@ -331,7 +367,7 @@ def bot_response():
         else:
             last = 13
             return ansDict[13]
-    elif last == 8:
+    elif last == 8 or last == 20:
         topic = get_topic(userText)
         if topic == "False":
             last = 12
@@ -346,7 +382,12 @@ def bot_response():
             plot_con = 'True'
             plotChoice = "Flo"
             plot_png()
-            return ansDict[10]
+            if (plot_png() == "no file"):
+                plot_con = 'False'
+                last = 20
+                return ansDict[20]
+            else:
+                return ansDict[10]
         else:
             last = 12
             proposal = "Abfälle"
@@ -381,17 +422,27 @@ def bot_response():
         return city+" ist ein schöner Ort! Gibt es ein Thema, das dich hierzu besonders interessiert?"
     elif last == 15:
         return None
-    elif last == 16:
+    elif last == 16 or last == 19:
         last = 17
         topic = get_topic(userText)
-        return "Interessiert dich zu Bayern das Thema "+topic+"?"
+        if (topic == 'False'):
+            last = 18
+            proposal = "Abfälle"
+            return "Hmm...Vielleicht interessiert dich zu Bayern das Thema "+proposal+"?"
+        else:   
+            return "Interessiert dich zu Bayern das Thema "+topic+"?"
     elif last == 17:
         if recognizeYes(userText):
-            last = 6
             plot_con = 'True'
             plotChoice = "Michael"
             plot_png()
-            return ansDict[6]
+            if (plot_png() == "no file"):
+                plot_con = 'False'
+                last = 19
+                return ansDict[19]
+            else:
+                last = 6
+                return ansDict[6]
         else:
             last = 18
             proposal = "Abfälle"
@@ -446,25 +497,29 @@ def get_chart_map():  # this is calling the chart
 
     # prep for merging
     results_nuts3_lastyear = results_nuts3_lastyear.drop_duplicates()
-    results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name"].str.replace(
-        ", Landkreis", "")
-    results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name2"].str.replace(
-        ", Landeshauptstadt", "")
+    #test if df is empty
+    row = results_nuts3_lastyear.iloc[4]
+    emptytest = row.iloc[4]
+    if(len(emptytest) != 0): 
+        results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name"].str.replace(
+            ", Landkreis", "")
+        results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name2"].str.replace(
+            ", Landeshauptstadt", "")
 
     # merge datenguide data
-    plot_data = shp_nuts2.merge(results_nuts3_lastyear,
+        plot_data = shp_nuts2.merge(results_nuts3_lastyear,
                                 left_on="CC_2",
                                 right_on="id")
 
     # plot
     #fig = plot_data.plot(column=field, legend=True)
-    fig = Figure()
-    axis = fig.add_subplot(1, 1, 1)
+        fig = Figure()
+        axis = fig.add_subplot(1, 1, 1)
 
-    axis = plot_data.plot(column=field, legend=True, ax=axis)
-    #fig.suptitle(term + " in " + str(max_year))
-    fig.suptitle(topic + " in " + str(max_year))
-    axis.set_axis_off()
+        axis = plot_data.plot(column=field, legend=True, ax=axis)
+        #fig.suptitle(term + " in " + str(max_year))
+        fig.suptitle(topic + " in " + str(max_year))
+        axis.set_axis_off()
 
     # return fig.get_figure()
     fig.savefig('foo4.png')
