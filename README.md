@@ -10,12 +10,16 @@ your questions and renders visualizations about diverse topics in Bavaria.
 This project was created by the Munich local chapter of Correlaid for the 
 CorrelaidX challenge.
 
+![Chatbot](.github/chatbot_pic3.PNG)
+
 ## Getting started
 
 - Create a Python virtual environment, and install all dependencies as 
 specified in `requirements.txt`.
 - Navigate to the `/App` folder and run `python app.py`.
 - Open `localhost:5000` in the browser to interact with the chatbot.
+- Be sure to use either Chrome or Firefox as the browser to have the best
+rending effects.
 
 ## Dialog flow
 

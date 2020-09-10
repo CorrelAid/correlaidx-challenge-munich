@@ -1,5 +1,5 @@
 spacy==2.3.0
-https://github.com/explosion/spacy-models/releases/download/de_core_news_sm-2.3.0/de_core_news_sm-2.3.0.tar.gz
+https://github.com/explosion/spacy-models/releases/download/de_core_news_lg-2.3.0/de_core_news_lg-2.3.0.tar.gz
 datenguidepy
 matplotlib
 flask
