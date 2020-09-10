@@ -43,7 +43,7 @@ for names in map(lambda x: x.lower(), z):
 
 def recognizeYes(Text):
     text = Text.lower()
-    if ("ja" == text or "ja " in text or "ja." in text or "ja," in text or "gerne" in text or "ok" in text):
+    if ("ja" == text or "ja " in text or "ja." in text or "ja," in text or "gerne" in text or "ok" in text or "jo" in text):
         return True
     else:
         return False
