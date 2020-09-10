@@ -135,7 +135,7 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 last = 0
 proposal = ""
 ansDict = {1: "Warst Du schon mal in Bayern?",
-           2: "In München gibt es die meisten Touristen in Bayern. Vielleicht magst Du ja mal vorbeikommen?",
+           2: "Schade, es ist echt schön hier! In München gibt es die meisten Touristen in Bayern. Vielleicht magst Du ja mal vorbeikommen?",
            3: "Was ist denn Deine Lieblingsstadt in Bayern? Oder hast Du keine?",
            4: "Hmm, den Bezirk scheine ich leider nicht zu kennen. Kennst Du vielleicht die Region in der erliegt oder hast Du Dich vielleicht verschrieben?",
            5: "Möchtest Du stattdessen vielleicht erstmal etwas über ganz Bayern erfahren?",
@@ -154,7 +154,8 @@ ansDict = {1: "Warst Du schon mal in Bayern?",
            18: "Hmmm...Vielleicht interessiert dich zu Bayern das Thema...",
            19: "Ups, dazu konnte ich leider nichts plotten. Welches andere Thema interessiert dich zu Bayern?",
            20: "Ups, dazu konnte ich leider nichts plotten. Welches andere Thema interessiert dich?",
-           21: "Möchtest Du gerne noch etwas über ganz Bayern erfahren?"}
+           21: "Möchtest Du gerne noch etwas über ganz Bayern erfahren?",
+           22: "Das freut mich zu hören! Wusstest du schon, dass in München die meinsten Touristen in Bayern gibt?"}
 
 plot_con = "False"
 city = ""
@@ -248,7 +249,10 @@ def bot_response():
         return "Hallo "+name + "! "+ansDict[1]
     elif last == 1:
         last = 2
-        return ansDict[2]
+        if recognizeYes(userText):
+            return ansDict[22]
+        else:
+            return ansDict[2]
     elif last == 2:
         last = 3
         return ansDict[3]
