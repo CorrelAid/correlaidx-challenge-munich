@@ -167,7 +167,7 @@ plot_con = "False"
 city = ""
 topic = ""
 info = ""
-plotChoice = "Flo"
+plotChoice = "Michael"
 # temporary:
 #myid = '09461'
 #table = get_statistics().query("long_description.str.contains('"+'Geld'+"')", engine='python')
@@ -416,40 +416,11 @@ def download_file():
         abort(404)
 
 
-def get_chart2():  # this is calling the chart
-    global topic
-    global myid
-    description = "long_description.str.contains('"+topic+"')"
-    table = get_statistics().query(description, engine='python')
-    q = Query.region(myid)
-    field = table.iloc[0]
-    field = field.name
-    f1 = q.add_field(field)
-    # f1.get_info()
-    results = q.results()
-    df = results.set_index('year')
-    # Save df as csv
-    df.to_csv('downloads/data.csv', sep='\t')
-
-    # get other data from same "Regierungsbezirk"
-    myid_parent = regions.loc[myid]["parent"]
-    regions_nuts3_sub = regions.query('(parent == "' + myid_parent + '")')
-    q = Query.region(list(regions_nuts3_sub.index))
-    q.add_field(field)
-    regions_nuts3_sub = q.results()
-
-    fig = sns.relplot(x="year", y=field,
-                      hue="name",
-                      data=regions_nuts3_sub)
-
-    return fig.fig
-
-
 def get_chart_map():  # this is calling the chart
     global topic
     regions = get_regions().query("level == 'nuts3'")
     cities = regions.query(
-        '(parent == "091") | (parent == "092") | (parent == "093") | (parent == "095") | (parent == "096") | (parent == "097")')
+        '(parent == "091") | (parent == "092") | (parent == "093") | (parent == "094") | (parent == "095") | (parent == "096") | (parent == "097")')
 
     # get multiple regions
     q = Query.region(list(cities.index))
@@ -482,8 +453,8 @@ def get_chart_map():  # this is calling the chart
 
     # merge datenguide data
     plot_data = shp_nuts2.merge(results_nuts3_lastyear,
-                                left_on="NAME_2",
-                                right_on="name2")
+                                left_on="CC_2",
+                                right_on="id")
 
     # plot
     #fig = plot_data.plot(column=field, legend=True)
