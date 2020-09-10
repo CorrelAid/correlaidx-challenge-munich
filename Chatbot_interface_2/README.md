@@ -10,7 +10,7 @@ your questions and renders visualizations about diverse topics in Bavaria.
 This project was created by the Munich local chapter of Correlaid for the 
 CorrelaidX challenge.
 
-![Chatbot](.github/chatbot_pic3.PNG)
+![Chatbot](https://github.com/CorrelAid/correlaidx-challenge-munich/blob/master/.github/chatbot_pic3.PNG)
 
 ## Getting started
 
