@@ -83,8 +83,6 @@
       <div id="chat-bottom">
         <div id="bottom-box">
           <div id = "link" class="bottom-icons">
-            <!--<i class="fa fa-plus-circle"></i>
-            <i class="fa fa-trash"></i>-->
             <div href= "" style="color: #fff">
               <i
                 class="fa fa-download"
@@ -160,14 +158,6 @@
         var element = document.getElementById('chat-box');
         element.scrollTo(0, element.scrollHeight);
       }
-
-      //function getChart() {
-      //  chart = '<img alt="Chart" src="/static/images/plot.png" >';
-      //chart = '<span><img src="/static/images/plot.png" /></span>';
-      //  $('#plotter').val('');
-      // $('#plotter').append(chart);
-      //}
-
       function getChart() {
         var image = document.getElementById('chart');
         image.src = '/static/images/plot.png#' + new Date().getTime();
@@ -215,14 +205,13 @@
 
           $('.chats').append(botHtml);
           updateScroll();
-        });
-        //falls der Plot direkt vom py Script hinzugefügt wird, nicht nötig. Ansonsten vielleicht eine Möglichkeit zu prüfen, ob der Plot angezeigt werden soll
-
-        $.get('/getPlot', {}).done(function (data) {
+          
+          $.get('/getPlot', {}).done(function (data) {
           if (data == 'True') {
             getChart();
             addLink();
           }
+        }); 
         });
       }
 
