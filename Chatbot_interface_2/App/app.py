@@ -1,30 +1,30 @@
 # imports
 from spacy.matcher import Matcher  # for patterns
-import plotly.graph_objs as go
-import dash_core_components as dcc
-import dash_html_components as html
-import dash_bio as dashbio
-import dash
-from six import PY3
-import six.moves.urllib.request as urlreq
-import json
-import matplotlib
-import pandas as pd
+# import plotly.graph_objs as go
+# import dash_core_components as dcc
+# import dash_html_components as html
+# import dash_bio as dashbio
+# import dash
+# from six import PY3
+# import six.moves.urllib.request as urlreq
+# import json
+# import matplotlib
+# import pandas as pd
 from datenguidepy import Query
 from datenguidepy.query_helper import get_regions, get_statistics
 import os
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from flask import Response
-import random
+# import random
 import io
-from spacy.tokens import Doc
+# from spacy.tokens import Doc
 from flask import Flask, render_template, request
 from flask import send_file  # to download files
 from string import punctuation
 
 # additional charts
-import seaborn as sns
+# import seaborn as sns
 import geopandas as gpd
 
 
@@ -167,7 +167,7 @@ plot_con = "False"
 city = ""
 topic = ""
 info = ""
-plotChoice = "Michael"
+plotChoice = "Flo"
 # temporary:
 #myid = '09461'
 #table = get_statistics().query("long_description.str.contains('"+'Geld'+"')", engine='python')
