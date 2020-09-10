@@ -355,7 +355,7 @@ def bot_response():
         else:
             last = 18
             proposal = "Abfälle"
-            return "Hmm...Vielleicht interessiert dich zu Bayern das Thema "+proposal+"? Falls ja, gib mir bitte etwas Zeit alles zu berechnen"
+            return "Hmm...Vielleicht interessiert dich zu Bayern das Thema "+proposal+"?"
     elif last == 18:
         if recognizeNo(userText):
             last = 13
