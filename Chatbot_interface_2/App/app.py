@@ -1,39 +1,22 @@
-# imports
 from spacy.matcher import Matcher  # for patterns
-# import plotly.graph_objs as go
-# import dash_core_components as dcc
-# import dash_html_components as html
-# import dash_bio as dashbio
-# import dash
-# from six import PY3
-# import six.moves.urllib.request as urlreq
-# import json
-# import matplotlib
-# import pandas as pd
 from datenguidepy import Query
 from datenguidepy.query_helper import get_regions, get_statistics
 import os
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from flask import Response
-# import random
 import io
-# from spacy.tokens import Doc
 from flask import Flask, render_template, request
 from flask import send_file  # to download files
 from string import punctuation
 
-# additional charts
-# import seaborn as sns
 import geopandas as gpd
 
 
 import spacy
-# Changed!
 import numpy as np
 
 nlp = spacy.load("de_core_news_lg")  # German
-#nlp = spacy.load("de_core_news_lg")
 matcher = Matcher(nlp.vocab)
 
 # preparing statistics
@@ -89,10 +72,6 @@ def getCity(text):
             list1.append(max(np.array(list2)))
         mean = np.sum(np.array(list1))/len(list1)
         sim.append(mean)
-    # try:
-    #    myid = ids[np.array(sim).argmax()]
-    # except:
-    #    print("Error")
     myid = ids[np.array(sim).argmax()]
     return z[np.array(sim).argmax()]
 
@@ -102,7 +81,6 @@ def get_hotwords(text):
     """
     result = []
     pos_tag = ['PROPN', 'ADJ', 'NOUN']
-    #doc = nlp(text.lower())
     doc = nlp(text)
     for token in doc:
         if(token.text in nlp.Defaults.stop_words or token.text in punctuation):
@@ -120,35 +98,28 @@ def get_topic(input):
         sim_stat = []
         separator = ' '
         words = nlp(separator.join(get_hotwords(input)))
-        #words = nlp(input)
         for doc in desc:
             list1 = []
             for teil in words:
                 list2 = []
                 for token in doc:
                     list2.append(token.similarity(teil))
-                # list1.append(np.array(list2).mean())
                 list1.append(max(np.array(list2)))
-            #mean = sum(np.array(list1))
             mean = np.array(list1).mean()
             sim_stat.append(mean)
         table = get_statistics().iloc[np.array(sim_stat).argmax()]
         term = table['short_description']
         info = table['long_description']
         info = info.split("===Aussage===")
-        try:
+        if (len(info) > 1):
             info = info[1]
-            info = info.split("Indikatorberechnung")
+        else:
             info = info[0]
-            info = info.split("=")
-            info = info[0]
-            info = info[:500]
-        except:
-            info = info.split("Indikatorberechnung")
-            info = info[0]
-            info = info.split("=")
-            info = info[0]
-            info = info[:500]
+        info = info.split("Indikatorberechnung")
+        info = info[0]
+        info = info.split("=")
+        info = info[0]
+        info = info[:500]
         return term
     except:
         return "False"
@@ -157,21 +128,11 @@ def get_topic(input):
 
 
 # Here comes the regionaldatenbank.de part
-# These are the steps given by Correlaid:
-# %load_ext autoreload
-# %autoreload
 if not os.path.basename(os.getcwd()) == "datenguide-python":
     os.chdir("..")
 
-
-# %matplotlib inline
-
-
 app = Flask(__name__)
-# reduce the max-age value of 12 hours to 0, cache is not stored longer #TODO, test it
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
-
-# define app routes
 
 last = 0
 proposal = ""
@@ -190,20 +151,18 @@ ansDict = {1: "Warst Du schon mal in Bayern?",
            13: "Möchtest Du gerne noch etwas über eine andere Region erfahren?",
            14: "Welche Region interessiert Dich denn besonders?",
            15: "Danke fürs Vorbeischauen. Bis zum nächsten Mal!",
-           16: "Gibt es ein Thema, das dich zu Bayern besonders interessiert? Bitte gib einen Begriff wie 'Abfälle', 'Unfälle' oder 'Geld' ein",
+           16: "Gibt es ein Thema, das dich zu Bayern besonders interessiert? Bitte gib einen Begriff wie 'Abfälle', 'Verkehrsunfälle' oder 'Verstorbene' ein",
            17: "Interessiert dich zu Bayern das Thema...",
            18: "Hmmm...Vielleicht interessiert dich zu Bayern das Thema...",
            19: "Ups, dazu konnte ich leider nichts plotten. Welches andere Thema interessiert dich zu Bayern?",
-           20: "Ups, dazu konnte ich leider nichts plotten. Welches andere Thema interessiert dich?"}
+           20: "Ups, dazu konnte ich leider nichts plotten. Welches andere Thema interessiert dich?",
+           21: "Möchtest Du gerne noch etwas über ganz Bayern erfahren?"}
 
 plot_con = "False"
 city = ""
 topic = ""
 info = ""
 plotChoice = "Flo"
-# temporary:
-#myid = '09461'
-#table = get_statistics().query("long_description.str.contains('"+'Geld'+"')", engine='python')
 
 
 @app.route("/")
@@ -224,34 +183,17 @@ def get_chart():
     global topic
     global myid
     global term
-    description = "long_description.str.contains('"+topic+"')"
+    description = "short_description.str.contains('"+topic+"')"
     table = get_statistics().query(description, engine='python')
-    #myid = '09461'
     q = Query.region(myid)
     field = table.iloc[0]
     field = field.name
     f1 = q.add_field(field)
-    # f1.get_info()
     results = q.results()
     df = results.set_index('year')
     # Save df as csv
     df.to_csv('downloads/data.csv', sep='\t')
 
-    # #Plotpy, not working this way, maybe good for a non static plot later?
-    # fig = go.Figure()
-    # fig.add_trace(
-    #     go.Scattergl(
-    #         x=df.index,
-    #         y=df[field],
-    #         mode="lines+markers",
-    #         name="AI1302",
-    #     )
-    # )
-    # fig.update_xaxes(title_text="Time")
-    # fig.update_yaxes(title_text=term+" in " +city)
-    # fig.show
-
-    # Using matplotlib instead of plotly:
     fig = Figure()
     fig.tight_layout()
     axis = fig.add_subplot(1, 1, 1)
@@ -277,26 +219,13 @@ def reset():
 def plot_png():
     global plotChoice
     try:
-        #fig = get_chart()
         if (plotChoice == "Michael"):
             fig = get_chart_map()
         else:
             fig = get_chart()
-        # Directly use the plot as matplotlib file:
-        # # os.remove('/static/images/plot.png') #this replaces the plot in the /static/images folder
         output = io.BytesIO()
-        # # canvas.print_png(output)
-        # # response = make_response(output.getvalue())
-        # # response.mimetype = 'image/png'
         FigureCanvas(fig).print_png(output)
         return Response(output.getvalue(), mimetype='image/png')
-
-        # Save plot as png
-        # with open("images/plot.png", "rb") as image:
-        #    f = image.read()
-        #    b = bytearray(f)
-
-        # return Response(b, mimetype='image/png')
     except:
         error = "no file"
         return error
@@ -327,42 +256,26 @@ def bot_response():
         return ansDict[3]
     elif last == 3:
         if "keine" in userText.lower():
-            #last = 4
-            # return ansDict[5]
             last = 5
             return ansDict[5]
         else:
             last = 8
             city = getCity(userText)
             return city+" ist ein schöner Ort! Welches Thema interessiert dich hierzu besonders?"
-            # return ansDict[8]
-    # elif last == 4:
-    #    if True:
-    #        last = 5
-    #        return ansDict[5]
-    #    else:
-    #        last = 8
-    #        return ansDict[8]
     elif last == 5:
         if recognizeYes(userText):
             last = 16
-            #plot_con = 'True'
-            # get_chart2()
             return ansDict[16]
         else:
             last = 13
             return ansDict[13]
     elif last == 6:
         plot_con = 'False'
-        #last = 13
-        # return ansDict[13]
         last = 11
         return "Hier ein paar Erklärungen zu den Daten:"+info
     elif last == 7:
         if recognizeYes(userText):
             last = 16
-            #plot_con = 'True'
-            # plot_png()
             return ansDict[16]
         else:
             last = 13
@@ -371,16 +284,16 @@ def bot_response():
         topic = get_topic(userText)
         if topic == "False":
             last = 12
-            proposal = "Unfälle"
+            proposal = "Verkehrsunfälle"
             return "Hmm...Vielleicht interessiert dich das Thema "+proposal+"?"
         else:
             last = 9
             return "Interessiert Dich das Thema "+topic+"?"
     elif last == 9:
         if recognizeYes(userText):
+            plotChoice = "Flo"
             last = 10
             plot_con = 'True'
-            plotChoice = "Flo"
             plot_png()
             if (plot_png() == "no file"):
                 plot_con = 'False'
@@ -407,18 +320,16 @@ def bot_response():
             last = 9
             topic = get_topic(proposal)
             return "Interessiert Dich das Thema "+topic+"?"
-            # return ansDict[9]
     elif last == 13:
         if recognizeYes(userText):
             last = 14
             return ansDict[14]
         else:
-            last = 15
-            return ansDict[15]
+            last = 21
+            return ansDict[21]
     elif last == 14:
         last = 8
         city = getCity(userText)
-        # return ansDict[8]
         return city+" ist ein schöner Ort! Gibt es ein Thema, das dich hierzu besonders interessiert?"
     elif last == 15:
         return None
@@ -428,9 +339,9 @@ def bot_response():
         if (topic == 'False'):
             last = 18
             proposal = "Abfälle"
-            return "Hmm...Vielleicht interessiert dich zu Bayern das Thema "+proposal+"?"
+            return "Hmm...Vielleicht interessiert dich zu Bayern das Thema "+proposal+"? Falls ja, gib mir bitte etwas Zeit alles zu berechnen"
         else:   
-            return "Interessiert dich zu Bayern das Thema "+topic+"?"
+            return "Interessiert dich zu Bayern das Thema "+topic+"? Falls ja, gib mir bitte etwas Zeit alles zu berechnen"
     elif last == 17:
         if recognizeYes(userText):
             plot_con = 'True'
@@ -446,7 +357,7 @@ def bot_response():
         else:
             last = 18
             proposal = "Abfälle"
-            return "Hmm...Vielleicht interessiert dich zu Bayern das Thema "+proposal+"?"
+            return "Hmm...Vielleicht interessiert dich zu Bayern das Thema "+proposal+"? Falls ja, gib mir bitte etwas Zeit alles zu berechnen"
     elif last == 18:
         if recognizeNo(userText):
             last = 13
@@ -455,12 +366,18 @@ def bot_response():
             last = 17
             topic = get_topic(proposal)
             return "Interessiert Dich das Thema "+topic+"?"
+    elif last == 21:
+        if recognizeYes(userText):
+            last = 16
+            return ansDict[16]
+        else:
+            last = 13
+            return ansDict[13]
 
 
 @app.route('/download')
 def download_file():
     try:
-        # return send_from_directory('./download/', filename='data.csv', as_attachment=True, cache_timeout=0)
         path = "downloads/data.csv"
         return send_file(path, as_attachment=True, cache_timeout=0)
     except FileNotFoundError:
@@ -486,12 +403,6 @@ def get_chart_map():  # this is calling the chart
 
     # read in shps
     shp_nuts2 = gpd.read_file("shp/bavaria_nuts2")
-    # shp_nuts3 = gpd.read_file("shp/bavaria_nuts3")
-
-    # average datenguide (or extract last year)
-    # results_nuts2_lastyear = results_nuts2[results_nuts2["year"] == max(results_nuts2["year"])]
-    # results_nuts3_lastyear = results_nuts3[results_nuts3["year"] == max(
-    #    results_nuts3["year"])]
     max_year = max(results_nuts3["year"])
     results_nuts3_lastyear = results_nuts3[results_nuts3["year"] == max_year]
 
@@ -512,7 +423,6 @@ def get_chart_map():  # this is calling the chart
                                 right_on="id")
 
     # plot
-    #fig = plot_data.plot(column=field, legend=True)
         fig = Figure()
         axis = fig.add_subplot(1, 1, 1)
 
