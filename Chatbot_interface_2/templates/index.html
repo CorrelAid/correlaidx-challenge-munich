@@ -64,8 +64,8 @@
                 <div class="received-msg-inbox">
                   <p>
                     Griaß di! Ich bin Charlie, ein Chatbot zu Bayern. Ich kann
-                    Dir mithilfe der Regionalstatistik verschiedene Statistiken
-                    und Informationen über Bayern zeigen. Wer bist Du denn?
+                    Dir mithilfe von Datenguide verschiedene Statistiken und
+                    Informationen über Bayern zeigen. Wer bist Du denn?
                   </p>
                   <span class="time" name="time_"> </span>
                 </div>
@@ -82,8 +82,8 @@
 
       <div id="chat-bottom">
         <div id="bottom-box">
-          <div id = "link" class="bottom-icons">
-            <div href= "" style="color: #fff">
+          <div id="link" class="bottom-icons">
+            <div href="" style="color: #fff">
               <i
                 class="fa fa-download"
                 style="color: #fff; padding: 5px; cursor: pointer"
@@ -165,11 +165,12 @@
       }
 
       function addLink() {
-          formerbutton = document.getElementById('link');
-          while(formerbutton.firstChild){
-              formerbutton.removeChild(formerbutton.firstChild);
-          }
-        link = '<a href="/download" style="color: #fff"><i class="fa fa-download" style="color: #fff; padding: 5px; cursor: pointer"> </i>csv Datei </a>'
+        formerbutton = document.getElementById('link');
+        while (formerbutton.firstChild) {
+          formerbutton.removeChild(formerbutton.firstChild);
+        }
+        link =
+          '<a href="/download" style="color: #fff"><i class="fa fa-download" style="color: #fff; padding: 5px; cursor: pointer"> </i>csv Datei </a>';
         $('#link').append(link);
       }
 
@@ -205,13 +206,13 @@
 
           $('.chats').append(botHtml);
           updateScroll();
-          
+
           $.get('/getPlot', {}).done(function (data) {
-          if (data == 'True') {
-            getChart();
-            addLink();
-          }
-        }); 
+            if (data == 'True') {
+              getChart();
+              addLink();
+            }
+          });
         });
       }
 
