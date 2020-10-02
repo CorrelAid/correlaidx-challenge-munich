@@ -16,7 +16,6 @@ CorrelaidX challenge.
 
 - Create a Python virtual environment, and install all dependencies as 
 specified in `requirements.txt`.
-- download the `de_core_news_lg` model for spacy by running `python -m spacy download de_core_news_lg` 
 - Navigate to the `/App` folder and run `python app.py`.
 - Open `localhost:5000` in the browser to interact with the chatbot.
 - Be sure to use either Chrome or Firefox as the browser to have the best

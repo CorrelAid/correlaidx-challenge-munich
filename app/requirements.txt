@@ -1,0 +1,8 @@
+spacy==2.3.0
+https://github.com/explosion/spacy-models/releases/download/de_core_news_lg-2.3.0/de_core_news_lg-2.3.0.tar.gz
+datenguidepy
+matplotlib
+flask
+numpy
+geopandas
+descartes
