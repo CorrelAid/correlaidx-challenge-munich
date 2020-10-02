@@ -10,17 +10,28 @@ your questions and renders visualizations about diverse topics in Bavaria.
 This project was created by the Munich local chapter of Correlaid for the 
 CorrelaidX challenge.
 
-![Chatbot](.github/chatbot_pic3.PNG)
+![Chatbot](https://github.com/CorrelAid/correlaidx-challenge-munich/blob/master/.github/chatbot_pic3.PNG)
 
 ## Getting started
 
 - Create a Python virtual environment, and install all dependencies as 
 specified in `requirements.txt`.
-- download the `de_core_news_lg` model for spacy by running `python -m spacy download de_core_news_lg` 
 - Navigate to the `/App` folder and run `python app.py`.
 - Open `localhost:5000` in the browser to interact with the chatbot.
 - Be sure to use either Chrome or Firefox as the browser to have the best
 rending effects.
+- If you are pip installing geopandas, make sure to install the dependencies. Maybe try
+`pip install wheel
+pip install pipwin
+pipwin install numpy
+pipwin install pandas
+pipwin install shapely
+pipwin install gdal
+pipwin install fiona
+pipwin install pyproj
+pipwin install six
+pipwin install rtree
+pipwin install geopandas`. Otherwise,  download GDAL and fiona via https://www.lfd.uci.edu/~gohlke/pythonlibs/#gdal and https://www.lfd.uci.edu/~gohlke/pythonlibs/#fiona or use conda.
 
 ## Dialog flow
 
