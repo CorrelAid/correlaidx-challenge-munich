@@ -27,6 +27,12 @@ source venv/bin/activate
 pip -r requirements.txt
 ```
 
+and download the model for spacy by running:
+
+```
+python -m spacy download de_core_news_lg
+```
+
 ### Run app locally
 1. navigate to the `/app` folder
 2. start the app
@@ -75,12 +81,19 @@ SpaCy library is used to process the text input.
 
 ## Deployment
 The app is deployed on a CorrelAid Ubuntu server. 
-For that, `gunicorn` is used.
-
-in `app`:
+For that, `gunicorn` is used. As a process manager, `supervisord` is used. 
+To start the `gunicorn` processes via `supervisord`, run the following in the project root:
 
 ```
-gunicorn main:app -c gunicorn_config_prod.py
+supervisord -c supervisor.conf
 ```
 
-the app runs behind a Nginx reverse proxy. 
+or from `/home/ubuntu`
+```
+supervisord -c /home/ubuntu/cxc/correlaidx-challenge-munich/supervisor.conf
+```
+
+Use `supervisorctl` to monitor the process.
+
+the app runs on port 5000 and behind a Nginx reverse proxy (see `/etc/nginx/sites-available/services`).
+It is reachable from the internet at [charlie.correlaid.org](https://charlie.correlaid.org)

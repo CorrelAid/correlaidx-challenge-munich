@@ -1,1 +1,6 @@
 venv/*
+.DS_Store
+
+app/images/plot.png
+app/downloads/data.csv
+*pyc
