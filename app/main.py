@@ -9,7 +9,7 @@ import io
 from flask import Flask, render_template, request
 from flask import send_file  # to download files
 from string import punctuation
-
+import logging 
 import geopandas as gpd
 
 
@@ -217,10 +217,12 @@ def plot_png():
             fig = get_chart_map()
         else:
             fig = get_chart()
+        app.logger.debug("figure: %s", str(fig))
         output = io.BytesIO()
         FigureCanvas(fig).print_png(output)
         return Response(output.getvalue(), mimetype='image/png')
-    except:
+    except Exception as e:
+        app.logger.error('an error occurred during plotting: ', e)
         error = "no file"
         return error
 
@@ -382,56 +384,65 @@ def download_file():
 
 
 def get_chart_map():  # this is calling the chart
-    global topic
-    regions = get_regions().query("level == 'nuts3'")
-    cities = regions.query(
-        '(parent == "091") | (parent == "092") | (parent == "093") | (parent == "094") | (parent == "095") | (parent == "096") | (parent == "097")')
+    try:
+        global topic
+        regions = get_regions().query("level == 'nuts3'")
+        cities = regions.query(
+            '(parent == "091") | (parent == "092") | (parent == "093") | (parent == "094") | (parent == "095") | (parent == "096") | (parent == "097")')
 
-    # get multiple regions
-    q = Query.region(list(cities.index))
+        # get multiple regions
+        q = Query.region(list(cities.index))
 
-    description = "short_description.str.contains('"+topic+"')"
-    table = get_statistics().query(description, engine='python')
+        description = "short_description.str.contains('"+topic+"')"
+        table = get_statistics().query(description, engine='python')
 
-    field = table.iloc[0]
-    field = field.name
-    q.add_field(field)
-    results_nuts3 = q.results()
+        field = table.iloc[0]
+        field = field.name
+        q.add_field(field)
+        results_nuts3 = q.results()
 
-    # read in shps
-    shp_nuts2 = gpd.read_file("shp/bavaria_nuts2")
-    max_year = max(results_nuts3["year"])
-    results_nuts3_lastyear = results_nuts3[results_nuts3["year"] == max_year]
+        # read in shps
+        shp_nuts2 = gpd.read_file("shp/bavaria_nuts2")
+        max_year = max(results_nuts3["year"])
+        results_nuts3_lastyear = results_nuts3[results_nuts3["year"] == max_year]
 
-    # prep for merging
-    results_nuts3_lastyear = results_nuts3_lastyear.drop_duplicates()
-    # test if df is empty
-    row = results_nuts3_lastyear.iloc[4]
-    emptytest = row.iloc[4]
-    if(len(emptytest) != 0):
-        results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name"].str.replace(
-            ", Landkreis", "")
-        results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name2"].str.replace(
-            ", Landeshauptstadt", "")
+        # prep for merging
+        results_nuts3_lastyear = results_nuts3_lastyear.drop_duplicates()
+        # test if df is empty
+        row = results_nuts3_lastyear.iloc[4]
+        emptytest = row.iloc[4]
+        if(len(emptytest) != 0):
+            results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name"].str.replace(
+                ", Landkreis", "")
+            results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name2"].str.replace(
+                ", Landeshauptstadt", "")
 
-    # merge datenguide data
-        plot_data = shp_nuts2.merge(results_nuts3_lastyear,
-                                    left_on="CC_2",
-                                    right_on="id")
+            # merge datenguide data
+            plot_data = shp_nuts2.merge(results_nuts3_lastyear,
+                                        left_on="CC_2",
+                                        right_on="id")
 
-    # plot
-        fig = Figure()
-        axis = fig.add_subplot(1, 1, 1)
+            plot_data.to_csv('downloads/data.csv', sep='\t')
 
-        axis = plot_data.plot(column=field, legend=True, ax=axis)
-        #fig.suptitle(term + " in " + str(max_year))
-        fig.suptitle(topic + " in " + str(max_year))
-        axis.set_axis_off()
+            # plot
+            fig = Figure()
+            axis = fig.add_subplot(1, 1, 1)
 
-    # return fig.get_figure()
-    fig.savefig('foo4.png')
-    return fig
+            axis = plot_data.plot(column=field, legend=True, ax=axis)
+            fig.suptitle(topic + " in " + str(max_year))
+            axis.set_axis_off()
+
+            # return fig.get_figure()
+            fig.savefig('images/plot.png')
+            return fig
+    except Exception as e: 
+        app.logger.error('an error occurred during the creation of the map:', e)
 
 
 if __name__ == "__main__":
     app.run()
+
+if __name__ != '__main__':
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)

@@ -42,7 +42,8 @@ gunicorn main:app -c gunicorn_config.py
 rending effects.
 
 ### Geopandas hints
-If you are pip installing geopandas, make sure to install the dependencies. Maybe try
+If you are pip installing geopandas, make sure to install the dependencies. 
+On Windows, you might try:
 ```
 pip install wheel
 pip install pipwin
