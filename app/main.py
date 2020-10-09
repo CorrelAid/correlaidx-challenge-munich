@@ -422,8 +422,6 @@ def get_chart_map():  # this is calling the chart
                                         left_on="CC_2",
                                         right_on="id")
 
-            plot_data.to_csv('downloads/data.csv', sep='\t')
-
             # plot
             fig = Figure()
             axis = fig.add_subplot(1, 1, 1)
