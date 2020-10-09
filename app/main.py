@@ -16,7 +16,7 @@ import geopandas as gpd
 import spacy
 import numpy as np
 
-nlp = spacy.load("de_core_news_sm")  # German
+nlp = spacy.load("de_core_news_lg")  # German
 matcher = Matcher(nlp.vocab)
 
 # preparing statistics
@@ -123,11 +123,6 @@ def get_topic(input):
         return term
     except:
         return "False"
-
-
-# Here comes the regionaldatenbank.de part
-if not os.path.basename(os.getcwd()) == "datenguide-python":
-    os.chdir("..")
 
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
