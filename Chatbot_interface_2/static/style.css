@@ -66,16 +66,14 @@ img {
   grid-column: 1;
   grid-row: 2;
   background: #eee;
+  display: flex;
+  justify-content: center;
+  align-items: center;  
 }
 #plotter {
   width: 100%;
-  height: 100%;
-}
-#plotter img {
-  /* margin: 10% 10%;*/
-  width: 100%;
-  height: 100%;
-  visibility: hidden;
+  display: flex;
+  justify-content: center;
 }
 
 #plot-bottom {
