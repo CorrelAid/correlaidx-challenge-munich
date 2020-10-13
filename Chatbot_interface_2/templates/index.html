@@ -185,6 +185,11 @@
 
       function getResponse() {
         let userText = $('#textInput').val();
+        var lt = /</g, 
+            gt = />/g, 
+            ap = /'/g, 
+            ic = /"/g;
+        userText = userText.toString().replace(lt, "&lt;").replace(gt, "&gt;").replace(ap, "&#39;").replace(ic, "&#34;");        
         let userHtml =
           '<div class="outgoing-chats"><div class="outgoing-chats-msg"><p style="word-wrap: break-word;">' +
           userText +
