@@ -1,3 +1,4 @@
+from spacy.matcher import Matcher  # for patterns
 from datenguidepy import Query
 from datenguidepy.query_helper import get_regions, get_statistics
 import os
@@ -8,7 +9,7 @@ import io
 from flask import Flask, render_template, request
 from flask import send_file  # to download files
 from string import punctuation
-
+import logging 
 import geopandas as gpd
 
 
@@ -16,6 +17,7 @@ import spacy
 import numpy as np
 
 nlp = spacy.load("de_core_news_lg")  # German
+matcher = Matcher(nlp.vocab)
 
 # preparing statistics
 statistics = get_statistics().short_description.values.tolist()
@@ -41,7 +43,7 @@ for names in map(lambda x: x.lower(), z):
 
 def recognizeYes(Text):
     text = Text.lower()
-    if ("ja" == text or "ja " in text or "ja." in text or "ja," in text or "gerne" in text or "ok" in text or "jo" in text or "ja!" in text):
+    if ("ja" == text or "ja " in text or "ja." in text or "ja," in text or "gerne" in text or "ok" in text or "jo" in text):
         return True
     else:
         return False
@@ -53,8 +55,6 @@ def recognizeNo(Text):
         return True
     else:
         return False
-
-# chooses the city/region from the list; names which are in the list will regardless in which order the words are written be matched to the correct names
 
 
 def getCity(text):
@@ -124,38 +124,33 @@ def get_topic(input):
     except:
         return "False"
 
-
-# Here comes the regionaldatenbank.de part
-if not os.path.basename(os.getcwd()) == "datenguide-python":
-    os.chdir("..")
-
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 last = 0
 proposal = ""
-ansDict = {1: "Warst du schon mal in Bayern?",
-           2: "Schade, es ist echt schön hier! In München gibt es die meisten Touristen in Bayern. Vielleicht magst du ja mal vorbeikommen?",
-           3: "Was ist denn deine Lieblingsstadt in Bayern? Oder hast du keine?",
-           4: "Hmm, den Bezirk scheine ich leider nicht zu kennen. Kennst du vielleicht die Region in der er liegt oder hast du dich vielleicht verschrieben?",
-           5: "Möchtest du stattdessen vielleicht erstmal etwas über ganz Bayern erfahren?",
-           6: "Ok, hier ein interessanter Plot zu Bayern:",
-           7: "Schade, möchtest du stattdessen einen Plot über ganz Bayern sehen?",
+ansDict = {1: "Warst Du schon mal in Bayern?",
+           2: "Schade, es ist echt schön hier! In München gibt es die meisten Touristen in Bayern. Vielleicht magst Du ja mal vorbeikommen?",
+           3: "Was ist denn Deine Lieblingsstadt in Bayern? Oder hast Du keine?",
+           4: "Hmm, den Bezirk scheine ich leider nicht zu kennen. Kennst Du vielleicht die Region in der erliegt oder hast Du Dich vielleicht verschrieben?",
+           5: "Möchtest Du stattdessen vielleicht erstmal etwas über ganz Bayern erfahren?",
+           6: "Ok gerne, hier ein interessanter Plot zu Bayern:",
+           7: "Schade, möchtest Du stattdessen einen Plot über ganz Bayern sehen?",
            8: "Das ist eine schöne Region! Gibt es ein Thema, das dich hierzu besonders interessiert?",
-           9: "Interessiert dich das Thema...?",
-           10: "Links hast du einen Plot zum Thema. Beim Download-Button kannst du dir die CSV-Datei herunterladen.",
+           9: "Interessiert Dich das Thema...?",
+           10: "Links hast Du einen Plot zum Thema. Beim Download-Button kannst Du Dir die CSV-Datei herunterladen.",
            11: "Hier ein paar Erklärungen zu den Daten:",
            12: "Vielleicht interessiert dich das Thema "+proposal+"?",
-           13: "Möchtest du gerne noch etwas über eine andere Region erfahren?",
-           14: "Welche Region interessiert dich denn besonders?",
+           13: "Möchtest Du gerne noch etwas über eine andere Region erfahren?",
+           14: "Welche Region interessiert Dich denn besonders?",
            15: "Danke fürs Vorbeischauen. Bis zum nächsten Mal!",
            16: "Gibt es ein Thema, das dich zu Bayern besonders interessiert? Bitte gib einen Begriff wie 'Abfälle', 'Verkehrsunfälle' oder 'Verstorbene' ein",
            17: "Interessiert dich zu Bayern das Thema...",
            18: "Hmmm...Vielleicht interessiert dich zu Bayern das Thema...",
            19: "Ups, dazu konnte ich leider nichts plotten. Welches andere Thema interessiert dich zu Bayern?",
            20: "Ups, dazu konnte ich leider nichts plotten. Welches andere Thema interessiert dich?",
-           21: "Möchtest du gerne noch etwas über ganz Bayern erfahren?",
-           22: "Das freut mich zu hören! Wusstest du schon, dass es in München die meisten Touristen in Bayern gibt?"}
+           21: "Möchtest Du gerne noch etwas über ganz Bayern erfahren?",
+           22: "Das freut mich zu hören! Wusstest du schon, dass in München die meinsten Touristen in Bayern gibt?"}
 
 plot_con = "False"
 city = ""
@@ -201,6 +196,7 @@ def get_chart():
     axis.plot(xs, ys, linestyle='--', marker='o', color='b')
     axis.set_xlabel('Time')
     axis.set_ylabel(term+" in " + city)
+    fig.savefig('images/plot.png')
     return fig
 
 
@@ -221,10 +217,12 @@ def plot_png():
             fig = get_chart_map()
         else:
             fig = get_chart()
+        app.logger.debug("figure: %s", str(fig))
         output = io.BytesIO()
         FigureCanvas(fig).print_png(output)
         return Response(output.getvalue(), mimetype='image/png')
-    except:
+    except Exception as e:
+        app.logger.error('an error occurred during plotting: ', e)
         error = "no file"
         return error
 
@@ -289,7 +287,7 @@ def bot_response():
             return "Hmm...Vielleicht interessiert dich das Thema "+proposal+"?"
         else:
             last = 9
-            return "Interessiert dich das Thema "+topic+"?"
+            return "Interessiert Dich das Thema "+topic+"?"
     elif last == 9:
         if recognizeYes(userText):
             plotChoice = "Flo"
@@ -366,7 +364,7 @@ def bot_response():
         else:
             last = 17
             topic = get_topic(proposal)
-            return "Interessiert dich das Thema "+topic+"?"
+            return "Interessiert Dich das Thema "+topic+"?"
     elif last == 21:
         if recognizeYes(userText):
             last = 16
@@ -386,55 +384,63 @@ def download_file():
 
 
 def get_chart_map():  # this is calling the chart
-    global topic
-    regions = get_regions().query("level == 'nuts3'")
-    cities = regions.query(
-        '(parent == "091") | (parent == "092") | (parent == "093") | (parent == "094") | (parent == "095") | (parent == "096") | (parent == "097")')
+    try:
+        global topic
+        regions = get_regions().query("level == 'nuts3'")
+        cities = regions.query(
+            '(parent == "091") | (parent == "092") | (parent == "093") | (parent == "094") | (parent == "095") | (parent == "096") | (parent == "097")')
 
-    # get multiple regions
-    q = Query.region(list(cities.index))
+        # get multiple regions
+        q = Query.region(list(cities.index))
 
-    description = "short_description.str.contains('"+topic+"')"
-    table = get_statistics().query(description, engine='python')
+        description = "short_description.str.contains('"+topic+"')"
+        table = get_statistics().query(description, engine='python')
 
-    field = table.iloc[0]
-    field = field.name
-    q.add_field(field)
-    results_nuts3 = q.results()
+        field = table.iloc[0]
+        field = field.name
+        q.add_field(field)
+        results_nuts3 = q.results()
 
-    # read in shps
-    shp_nuts2 = gpd.read_file("shp/bavaria_nuts2")
-    max_year = max(results_nuts3["year"])
-    results_nuts3_lastyear = results_nuts3[results_nuts3["year"] == max_year]
+        # read in shps
+        shp_nuts2 = gpd.read_file("shp/bavaria_nuts2")
+        max_year = max(results_nuts3["year"])
+        results_nuts3_lastyear = results_nuts3[results_nuts3["year"] == max_year]
 
-    # prep for merging
-    results_nuts3_lastyear = results_nuts3_lastyear.drop_duplicates()
-    # test if df is empty
-    row = results_nuts3_lastyear.iloc[4]
-    emptytest = row.iloc[4]
-    if(len(emptytest) != 0):
-        results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name"].str.replace(
-            ", Landkreis", "")
-        results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name2"].str.replace(
-            ", Landeshauptstadt", "")
+        # prep for merging
+        results_nuts3_lastyear = results_nuts3_lastyear.drop_duplicates()
+        # test if df is empty
+        row = results_nuts3_lastyear.iloc[4]
+        emptytest = row.iloc[4]
+        if(len(emptytest) != 0):
+            results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name"].str.replace(
+                ", Landkreis", "")
+            results_nuts3_lastyear.loc[:, "name2"] = results_nuts3_lastyear["name2"].str.replace(
+                ", Landeshauptstadt", "")
 
-    # merge datenguide data
-        plot_data = shp_nuts2.merge(results_nuts3_lastyear,
-                                    left_on="CC_2",
-                                    right_on="id")
+            # merge datenguide data
+            plot_data = shp_nuts2.merge(results_nuts3_lastyear,
+                                        left_on="CC_2",
+                                        right_on="id")
 
-    # plot
-        fig = Figure()
-        axis = fig.add_subplot(1, 1, 1)
+            # plot
+            fig = Figure()
+            axis = fig.add_subplot(1, 1, 1)
 
-        axis = plot_data.plot(column=field, legend=True, ax=axis)
-        #fig.suptitle(term + " in " + str(max_year))
-        fig.suptitle(topic + " in " + str(max_year))
-        axis.set_axis_off()
+            axis = plot_data.plot(column=field, legend=True, ax=axis)
+            fig.suptitle(topic + " in " + str(max_year))
+            axis.set_axis_off()
 
-    # return fig.get_figure()
-    return fig
+            # return fig.get_figure()
+            fig.savefig('images/plot.png')
+            return fig
+    except Exception as e: 
+        app.logger.error('an error occurred during the creation of the map:', e)
 
 
 if __name__ == "__main__":
     app.run()
+
+if __name__ != '__main__':
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
