@@ -24,7 +24,7 @@ source venv/bin/activate
 
 2. install the dependencies
 ```
-pip -r requirements.txt
+pip install -r requirements.txt
 ```
 
 and download the model for spacy by running:

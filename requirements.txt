@@ -29,8 +29,6 @@ dash-html-components==1.1.1
 dash-renderer==1.8.2
 dash-table==4.10.1
 datenguidepy==0.3.1
-de-core-news-lg @ https://github.com/explosion/spacy-models/releases/download/de_core_news_lg-2.3.0/de_core_news_lg-2.3.0.tar.gz
-de-core-news-sm @ https://github.com/explosion/spacy-models/releases/download/de_core_news_sm-2.3.0/de_core_news_sm-2.3.0.tar.gz
 decorator==4.4.2
 defusedxml==0.6.0
 descartes==1.1.0
