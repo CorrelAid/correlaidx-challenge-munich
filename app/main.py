@@ -8,7 +8,7 @@ import io
 from flask import Flask, render_template, request, session
 from flask import send_file  # to download files
 from string import punctuation
-import logging 
+import logging
 import geopandas as gpd
 
 
@@ -55,10 +55,12 @@ def recognizeNo(Text):
         return False
 
 # chooses the city/region from the list; names which are in the list will regardless in which order the words are written be matched to the correct names
+
+
 def getCity(text):
     global n
     global z
-    global myid
+    myid = session.get('myid')
     sim = []
     com_doc = nlp(text.lower())
     for doc in n:
@@ -71,6 +73,7 @@ def getCity(text):
         mean = np.sum(np.array(list1))/len(list1)
         sim.append(mean)
     myid = ids[np.array(sim).argmax()]
+    session['myid'] = myid
     return z[np.array(sim).argmax()]
 
 
@@ -90,8 +93,7 @@ def get_hotwords(text):
 
 
 def get_topic(input):
-    global term
-    global info
+    info = session.get('info')
     try:
         sim_stat = []
         separator = ' '
@@ -118,9 +120,11 @@ def get_topic(input):
         info = info.split("=")
         info = info[0]
         info = info[:500]
+        session['info'] = info
         return term
     except:
         return "False"
+
 
 app = Flask(__name__)
 app.secret_key = "super secret key"
@@ -161,7 +165,7 @@ plotChoice = "Flo"
 @app.route("/")
 def index():
     filePath = "downloads/data.csv"
-    session['last']= 0
+    session['last'] = 0
     if os.path.exists(filePath):
         os.remove(filePath)
     return render_template("index.html")
@@ -174,9 +178,8 @@ def plot():
 
 
 def get_chart():
-    global topic
-    global myid
-    global term
+    topic = session.get('topic')
+    myid = session.get('myid')
     description = "short_description.str.contains('"+topic+"')"
     table = get_statistics().query(description, engine='python')
     q = Query.region(myid)
@@ -195,13 +198,13 @@ def get_chart():
     ys = y = df[field]
     axis.plot(xs, ys, linestyle='--', marker='o', color='b')
     axis.set_xlabel('Time')
-    axis.set_ylabel(term+" in " + session.get('city'))
+    axis.set_ylabel(topic+" in " + session.get('city'))
     return fig
 
 
 @app.route("/resetLast")
 def reset():
-    session['last']= 0
+    session['last'] = 0
     global plot_con
     plot_con = "False"
     return "true"
@@ -231,10 +234,9 @@ def bot_response():
     global ansDict
     global plot_con
     city = session.get('city')
-    global term
-    global topic
+    topic = session.get('topic')
     global proposal
-    global info
+    info = session.get('info')
     global plotChoice
     userText = request.args.get('msg')
     if last == 0:
@@ -263,7 +265,7 @@ def bot_response():
             last = 8
             session['last'] = last
             city = getCity(userText)
-            session['city'] = last
+            session['city'] = city
             return city+" ist ein schöner Ort! Welches Thema interessiert dich hierzu besonders?"
     elif last == 5:
         if recognizeYes(userText):
@@ -290,6 +292,7 @@ def bot_response():
             return ansDict[13]
     elif last == 8 or last == 20:
         topic = get_topic(userText)
+        session['topic'] = topic
         if topic == "False":
             last = 12
             session['last'] = last
@@ -336,6 +339,7 @@ def bot_response():
             last = 9
             session['last'] = last
             topic = get_topic(proposal)
+            session['topic'] = topic
             return "Interessiert dich das Thema "+topic+"?"
     elif last == 13:
         if recognizeYes(userText):
@@ -350,7 +354,7 @@ def bot_response():
         last = 8
         session['last'] = last
         city = getCity(userText)
-        session['city'] = last
+        session['city'] = city
         return city+" ist ein schöner Ort! Gibt es ein Thema, das dich hierzu besonders interessiert?"
     elif last == 15:
         return None
@@ -358,6 +362,7 @@ def bot_response():
         last = 17
         session['last'] = last
         topic = get_topic(userText)
+        session['topic'] = topic
         if (topic == 'False'):
             last = 18
             session['last'] = last
@@ -393,6 +398,7 @@ def bot_response():
             last = 17
             session['last'] = last
             topic = get_topic(proposal)
+            session['topic'] = topic
             return "Interessiert dich das Thema "+topic+"?"
     elif last == 21:
         if recognizeYes(userText):
@@ -416,7 +422,7 @@ def download_file():
 
 def get_chart_map():  # this is calling the chart
     try:
-        global topic
+        topic = session.get('topic')
         regions = get_regions().query("level == 'nuts3'")
         cities = regions.query(
             '(parent == "091") | (parent == "092") | (parent == "093") | (parent == "094") | (parent == "095") | (parent == "096") | (parent == "097")')
@@ -463,8 +469,9 @@ def get_chart_map():  # this is calling the chart
 
             # return fig.get_figure()
             return fig
-    except Exception as e: 
-        app.logger.error('an error occurred during the creation of the map:', e)
+    except Exception as e:
+        app.logger.error(
+            'an error occurred during the creation of the map:', e)
 
 
 if __name__ == "__main__":
