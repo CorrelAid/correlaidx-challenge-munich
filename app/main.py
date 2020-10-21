@@ -159,13 +159,13 @@ plot_con = "False"
 city = ""
 topic = ""
 info = ""
-plotChoice = "Flo"
 
 
 @app.route("/")
 def index():
     filePath = "downloads/data.csv"
     session['last'] = 0
+    session['plotChoice'] = "Flo"
     if os.path.exists(filePath):
         os.remove(filePath)
     return render_template("index.html")
@@ -212,7 +212,7 @@ def reset():
 
 @app.route('/static/images/plot.png')
 def plot_png():
-    global plotChoice
+    plotChoice = session.get('plotChoice')
     try:
         if (plotChoice == "Michael"):
             fig = get_chart_map()
@@ -237,7 +237,7 @@ def bot_response():
     topic = session.get('topic')
     global proposal
     info = session.get('info')
-    global plotChoice
+    plotChoice = session.get('plotChoice')
     userText = request.args.get('msg')
     if last == 0:
         last = 1
@@ -305,6 +305,7 @@ def bot_response():
     elif last == 9:
         if recognizeYes(userText):
             plotChoice = "Flo"
+            session['plotChoice'] = plotChoice
             last = 10
             session['last'] = last
             plot_con = 'True'
@@ -375,6 +376,7 @@ def bot_response():
             plot_con = 'True'
             plotChoice = "Michael"
             plot_png()
+            session['plotChoice'] = plotChoice
             if (plot_png() == "no file"):
                 plot_con = 'False'
                 last = 19
