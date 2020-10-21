@@ -5,7 +5,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from flask import Response
 import io
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session
 from flask import send_file  # to download files
 from string import punctuation
 import logging 
@@ -123,9 +123,10 @@ def get_topic(input):
         return "False"
 
 app = Flask(__name__)
+app.secret_key = "super secret key"
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
-last = 0
+
 proposal = ""
 ansDict = {1: "Warst du schon mal in Bayern?",
            2: "Schade, es ist echt schön hier! In München gibt es die meisten Touristen in Bayern. Vielleicht magst du ja mal vorbeikommen?",
@@ -160,6 +161,7 @@ plotChoice = "Flo"
 @app.route("/")
 def index():
     filePath = "downloads/data.csv"
+    session['last']= 0
     if os.path.exists(filePath):
         os.remove(filePath)
     return render_template("index.html")
@@ -193,16 +195,15 @@ def get_chart():
     ys = y = df[field]
     axis.plot(xs, ys, linestyle='--', marker='o', color='b')
     axis.set_xlabel('Time')
-    axis.set_ylabel(term+" in " + city)
+    axis.set_ylabel(term+" in " + session.get('city'))
     return fig
 
 
 @app.route("/resetLast")
 def reset():
-    global last
+    session['last']= 0
     global plot_con
     plot_con = "False"
-    last = 0
     return "true"
 
 
@@ -226,10 +227,10 @@ def plot_png():
 
 @app.route("/getGlobal")
 def bot_response():
-    global last
+    last = session.get('last')
     global ansDict
     global plot_con
-    global city
+    city = session.get('city')
     global term
     global topic
     global proposal
@@ -240,100 +241,126 @@ def bot_response():
         last = 1
         separator = ' '
         name = separator.join(get_hotwords(userText))
+        session['last'] = last
         return "Hallo "+name + "! "+ansDict[1]
     elif last == 1:
         last = 2
+        session['last'] = last
         if recognizeYes(userText):
             return ansDict[22]
         else:
             return ansDict[2]
     elif last == 2:
         last = 3
+        session['last'] = last
         return ansDict[3]
     elif last == 3:
         if "keine" in userText.lower():
             last = 5
+            session['last'] = last
             return ansDict[5]
         else:
             last = 8
+            session['last'] = last
             city = getCity(userText)
+            session['city'] = last
             return city+" ist ein schöner Ort! Welches Thema interessiert dich hierzu besonders?"
     elif last == 5:
         if recognizeYes(userText):
             last = 16
+            session['last'] = last
             return ansDict[16]
         else:
             last = 13
+            session['last'] = last
             return ansDict[13]
     elif last == 6:
         plot_con = 'False'
         last = 11
+        session['last'] = last
         return "Hier ein paar Erklärungen zu den Daten:"+info
     elif last == 7:
         if recognizeYes(userText):
             last = 16
+            session['last'] = last
             return ansDict[16]
         else:
             last = 13
+            session['last'] = last
             return ansDict[13]
     elif last == 8 or last == 20:
         topic = get_topic(userText)
         if topic == "False":
             last = 12
+            session['last'] = last
             proposal = "Verkehrsunfälle"
             return "Hmm...Vielleicht interessiert dich das Thema "+proposal+"?"
         else:
             last = 9
+            session['last'] = last
             return "Interessiert Dich das Thema "+topic+"?"
     elif last == 9:
         if recognizeYes(userText):
             plotChoice = "Flo"
             last = 10
+            session['last'] = last
             plot_con = 'True'
             plot_png()
             if (plot_png() == "no file"):
                 plot_con = 'False'
                 last = 20
+                session['last'] = last
                 return ansDict[20]
             else:
                 return ansDict[10]
         else:
             last = 12
+            session['last'] = last
             proposal = "Abfälle"
             return "Hmm...Vielleicht interessiert dich das Thema "+proposal+"?"
     elif last == 10:
         plot_con = 'False'
         last = 11
+        session['last'] = last
         return "Hier ein paar Erklärungen zu den Daten:"+info
     elif last == 11:
         last = 13
+        session['last'] = last
         return ansDict[13]
     elif last == 12:
         if recognizeNo(userText):
             last = 7
+            session['last'] = last
             return ansDict[7]
         else:
             last = 9
+            session['last'] = last
             topic = get_topic(proposal)
             return "Interessiert dich das Thema "+topic+"?"
     elif last == 13:
         if recognizeYes(userText):
             last = 14
+            session['last'] = last
             return ansDict[14]
         else:
             last = 21
+            session['last'] = last
             return ansDict[21]
     elif last == 14:
         last = 8
+        session['last'] = last
         city = getCity(userText)
+        session['city'] = last
         return city+" ist ein schöner Ort! Gibt es ein Thema, das dich hierzu besonders interessiert?"
     elif last == 15:
         return None
     elif last == 16 or last == 19:
         last = 17
+        session['last'] = last
         topic = get_topic(userText)
         if (topic == 'False'):
             last = 18
+            session['last'] = last
             proposal = "Abfälle"
             return "Hmm...Vielleicht interessiert dich zu Bayern das Thema "+proposal+"? Falls ja, gib mir bitte etwas Zeit alles zu berechnen"
         else:
@@ -346,28 +373,35 @@ def bot_response():
             if (plot_png() == "no file"):
                 plot_con = 'False'
                 last = 19
+                session['last'] = last
                 return ansDict[19]
             else:
                 last = 6
+                session['last'] = last
                 return ansDict[6]
         else:
             last = 18
+            session['last'] = last
             proposal = "Abfälle"
             return "Hmm...Vielleicht interessiert dich zu Bayern das Thema "+proposal+"?"
     elif last == 18:
         if recognizeNo(userText):
             last = 13
+            session['last'] = last
             return ansDict[13]
         else:
             last = 17
+            session['last'] = last
             topic = get_topic(proposal)
             return "Interessiert dich das Thema "+topic+"?"
     elif last == 21:
         if recognizeYes(userText):
             last = 16
+            session['last'] = last
             return ansDict[16]
         else:
             last = 15
+            session['last'] = last
             return ansDict[15]
 
 
