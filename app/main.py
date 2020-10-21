@@ -11,7 +11,7 @@ from string import punctuation
 import logging
 import geopandas as gpd
 from textwrap import wrap
-from matplotlib.ticker import MaxNLocator #for integer values when plotting
+from matplotlib.ticker import MaxNLocator  # for integer values when plotting
 
 
 import spacy
@@ -202,7 +202,7 @@ def get_chart():
     axis.set_ylabel("\n".join(wrap(topic+" in " + session.get('city'), 60)))
     axis.xaxis.set_major_locator(MaxNLocator(integer=True))
     fig.tight_layout()
-    
+
     return fig
 
 
@@ -477,6 +477,13 @@ def get_chart_map():  # this is calling the chart
     except Exception as e:
         app.logger.error(
             'an error occurred during the creation of the map:', e)
+
+
+@app.after_request
+def add_header(response):
+    if 'Cache-Control' not in response.headers:
+        response.headers['Cache-Control'] = 'no-store'
+    return response
 
 
 if __name__ == "__main__":
