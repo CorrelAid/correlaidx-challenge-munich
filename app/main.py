@@ -10,6 +10,8 @@ from flask import send_file  # to download files
 from string import punctuation
 import logging
 import geopandas as gpd
+from textwrap import wrap
+from matplotlib.ticker import MaxNLocator #for integer values when plotting
 
 
 import spacy
@@ -190,13 +192,17 @@ def get_chart():
     df.to_csv('downloads/data.csv', sep='\t')
 
     fig = Figure()
-    fig.tight_layout()
     axis = fig.add_subplot(1, 1, 1)
     xs = x = df.index
     ys = y = df[field]
+
     axis.plot(xs, ys, linestyle='--', marker='o', color='b')
+
     axis.set_xlabel('Time')
-    axis.set_ylabel(topic+" in " + session.get('city'))
+    axis.set_ylabel("\n".join(wrap(topic+" in " + session.get('city'), 60)))
+    axis.xaxis.set_major_locator(MaxNLocator(integer=True))
+    fig.tight_layout()
+    
     return fig
 
 
