@@ -60,7 +60,6 @@ def recognizeNo(Text):
 def getCity(text):
     global n
     global z
-    myid = session.get('myid')
     sim = []
     com_doc = nlp(text.lower())
     for doc in n:
@@ -93,7 +92,6 @@ def get_hotwords(text):
 
 
 def get_topic(input):
-    info = session.get('info')
     try:
         sim_stat = []
         separator = ' '
@@ -173,7 +171,7 @@ def index():
 
 @app.route("/getPlot")
 def plot():
-    global plot_con
+    plot_con = session.get('plot_con')
     return plot_con
 
 
@@ -205,8 +203,7 @@ def get_chart():
 @app.route("/resetLast")
 def reset():
     session['last'] = 0
-    global plot_con
-    plot_con = "False"
+    session['plot_con'] = "False"
     return "true"
 
 
@@ -232,7 +229,7 @@ def plot_png():
 def bot_response():
     last = session.get('last')
     global ansDict
-    global plot_con
+    plot_con = session.get('plot_con')
     city = session.get('city')
     topic = session.get('topic')
     global proposal
@@ -277,7 +274,7 @@ def bot_response():
             session['last'] = last
             return ansDict[13]
     elif last == 6:
-        plot_con = 'False'
+        session['plot_con'] = 'False'
         last = 11
         session['last'] = last
         return "Hier ein paar Erklärungen zu den Daten:"+info
@@ -308,10 +305,10 @@ def bot_response():
             session['plotChoice'] = plotChoice
             last = 10
             session['last'] = last
-            plot_con = 'True'
+            session['plot_con'] = 'True'
             plot_png()
             if (plot_png() == "no file"):
-                plot_con = 'False'
+                session['plot_con'] = 'False'
                 last = 20
                 session['last'] = last
                 return ansDict[20]
@@ -323,7 +320,7 @@ def bot_response():
             proposal = "Abfälle"
             return "Hmm...Vielleicht interessiert dich das Thema "+proposal+"?"
     elif last == 10:
-        plot_con = 'False'
+        session['plot_con'] = 'False'
         last = 11
         session['last'] = last
         return "Hier ein paar Erklärungen zu den Daten:"+info
@@ -373,12 +370,12 @@ def bot_response():
             return "Interessiert dich zu Bayern das Thema "+topic+"? Falls ja, gib mir bitte etwas Zeit alles zu berechnen"
     elif last == 17:
         if recognizeYes(userText):
-            plot_con = 'True'
+            session['plot_con'] = 'True'
             plotChoice = "Michael"
             plot_png()
             session['plotChoice'] = plotChoice
             if (plot_png() == "no file"):
-                plot_con = 'False'
+                session['plot_con'] = 'False'
                 last = 19
                 session['last'] = last
                 return ansDict[19]
