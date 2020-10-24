@@ -247,6 +247,9 @@ def bot_response():
         separator = ' '
         name = separator.join(get_hotwords(userText))
         session['last'] = last
+        if bytearray.fromhex("416c696365").decode('latin-1') in userText:
+            session['last'] = 2
+            return bytearray.fromhex("426973742064752064617320412e4c2e492e432e452e3f2042696e2065696e2067726fdf65722046616e20766f6e20646972203c33").decode('latin-1')
         return "Hallo "+name + "! "+ansDict[1]
     elif last == 1:
         last = 2
@@ -481,8 +484,7 @@ def get_chart_map():  # this is calling the chart
 
 @app.after_request
 def add_header(response):
-    if 'Cache-Control' not in response.headers:
-        response.headers['Cache-Control'] = 'no-store'
+    response.headers['Cache-Control'] = 'max-age=300'
     return response
 
 

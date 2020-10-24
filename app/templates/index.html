@@ -5,9 +5,6 @@
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0"
-      Cache-Control:
-      max-age="0,"
-      must-revalidate
     />
     <title>Chatbot</title>
     <link
@@ -160,7 +157,7 @@
       }
       function getChart() {
         var image = document.getElementById('chart');
-        image.src = '/static/images/plot.png#' + new Date().getTime();
+        image.src = '/static/images/plot.png?' + new Date().getTime();
         image.style = 'width: 100%; visibility: visible;';
       }
 
