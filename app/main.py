@@ -242,6 +242,9 @@ def bot_response():
     info = session.get('info')
     plotChoice = session.get('plotChoice')
     userText = request.args.get('msg')
+    chars = '.!' #special char removal
+    for c in chars:
+        userText = userText.replace(c, '')
     if last == 0:
         last = 1
         separator = ' '
